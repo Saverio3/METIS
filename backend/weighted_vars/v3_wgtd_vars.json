@@ -1,0 +1,10 @@
+{
+  "MediaMix|WGTD": {
+    "base_name": "MediaMix",
+    "components": {
+      "tv_spend": 8,
+      "radio_spend": 3,
+      "online_spend": 10
+    }
+  }
+}

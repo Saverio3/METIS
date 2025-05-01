@@ -1,0 +1,61 @@
+/* Make charts fill the container 
+.chart-container {
+  width: 100%;
+  height: calc(100vh - 320px);
+  min-height: 500px;
+  margin-top: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+*/
+
+/* Make charts fill the container */
+.chart-container {
+    width: 100%;
+    height: 100%;
+    min-height: 500px;
+    padding: 0;
+    margin: 0;
+  }
+
+/* Ensure the chart takes up full container space */
+.e-chart, .e-accumulationchart {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Fix axis label spacing issues */
+.e-chart .e-primary-y-axis-labels text,
+.e-chart .e-secondary-y-axis-labels text {
+  font-size: 12px;
+}
+
+/* Improve axis title positioning */
+.e-chart .e-axis-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Remove marker dots from stacked charts */
+.e-stackingcolumn-series .e-chart-series-marker {
+  display: none !important;
+}
+
+/* Make tooltip more compact */
+.e-chart-tooltip {
+    z-index: 100;
+    background: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    max-width: 200px;
+    overflow: hidden;
+    white-space: normal;
+  }
+
+  /* Fix axis label formatting */
+.e-chart tspan {
+    font-size: 12px;
+  }

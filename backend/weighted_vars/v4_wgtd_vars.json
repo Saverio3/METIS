@@ -1,0 +1,9 @@
+{
+  "ATLMediaMix|WGTD": {
+    "base_name": "ATLMediaMix",
+    "components": {
+      "tv_spend": 2,
+      "radio_spend": 1.5
+    }
+  }
+}
