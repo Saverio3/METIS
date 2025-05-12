@@ -9,7 +9,7 @@ import {
   SignedIn,
   SignedOut,
   RedirectToSignIn,
-  useUser
+  useUser,
 } from '@clerk/clerk-react';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from './services/stripe';
@@ -36,7 +36,7 @@ import { useStateContext } from './contexts/ContextProvider';
 
 // Import Clerk components for authentication
 if (!process.env.REACT_APP_CLERK_PUBLISHABLE_KEY) {
-  throw new Error("Missing Clerk Publishable Key");
+  throw new Error('Missing Clerk Publishable Key');
 }
 
 const clerkPubKey = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY;
@@ -49,9 +49,9 @@ const AuthRedirect = () => {
 
   useEffect(() => {
     // Only redirect if they're explicitly on signin/signup pages
-    if (isLoaded && isSignedIn &&
-        (location.pathname.includes('/sign-in') ||
-         location.pathname.includes('/sign-up'))) {
+    if (isLoaded && isSignedIn
+        && (location.pathname.includes('/sign-in')
+         || location.pathname.includes('/sign-up'))) {
       navigate('/data-upload');
     }
   }, [isSignedIn, isLoaded, navigate, location]);
@@ -118,24 +118,21 @@ const AppLayout = ({ children }) => {
 };
 
 // Protected route component
-const ProtectedRoute = ({ children }) => {
-  return (
-    <>
-      <SignedIn>
-        {children}
-      </SignedIn>
-      <SignedOut>
-        <RedirectToSignIn />
-      </SignedOut>
-    </>
-  );
-};
+const ProtectedRoute = ({ children }) => (
+  <>
+    <SignedIn>
+      {children}
+    </SignedIn>
+    <SignedOut>
+      <RedirectToSignIn />
+    </SignedOut>
+  </>
+);
 
-const App = () => {
-  return (
-    <ClerkProvider publishableKey={clerkPubKey}>
-      <Elements stripe={stripePromise}>
-        <BrowserRouter>
+const App = () => (
+  <ClerkProvider publishableKey={clerkPubKey}>
+    <Elements stripe={stripePromise}>
+      <BrowserRouter>
         <AuthRedirect />
         <Routes>
           {/* Landing Page (no sidebar/navbar) */}
@@ -146,143 +143,220 @@ const App = () => {
           <Route path="/sign-up/*" element={<SignUp routing="path" path="/sign-up" redirectUrl="/data-upload" />} />
 
           {/* Account Settings */}
-          <Route path="/account-settings" element={
-            <ProtectedRoute>
-              <AppLayout><AccountSettings /></AppLayout>
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/account-settings"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><AccountSettings /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
 
           {/* Protected App routes with sidebar/navbar */}
-          <Route path="/data-upload" element={
-            <ProtectedRoute>
-              <AppLayout><DataUpload /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/variable-workshop" element={
-            <ProtectedRoute>
-              <AppLayout><VariableWorkshop /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/variable-charts" element={
-            <ProtectedRoute>
-              <AppLayout><Charts /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/decomposition" element={
-            <ProtectedRoute>
-              <AppLayout><Decomposition /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/model-diagnostics" element={
-            <ProtectedRoute>
-              <AppLayout><ModelDiagnostics /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/contribution-groups" element={
-            <ProtectedRoute>
-              <AppLayout><ContributionGroups /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/variable-testing" element={
-            <ProtectedRoute>
-              <AppLayout><VariableTesting /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/curve-testing" element={
-            <ProtectedRoute>
-              <AppLayout><CurveTesting /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/model-builder" element={
-            <ProtectedRoute>
-              <AppLayout><ModelBuilder /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/model-library" element={
-            <ProtectedRoute>
-              <AppLayout><ModelLibrary /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/orders" element={
-            <ProtectedRoute>
-              <AppLayout><Orders /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/employees" element={
-            <ProtectedRoute>
-              <AppLayout><Employees /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/customers" element={
-            <ProtectedRoute>
-              <AppLayout><Customers /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/kanban" element={
-            <ProtectedRoute>
-              <AppLayout><Kanban /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/editor" element={
-            <ProtectedRoute>
-              <AppLayout><Editor /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/calendar" element={
-            <ProtectedRoute>
-              <AppLayout><Calendar /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/color-picker" element={
-            <ProtectedRoute>
-              <AppLayout><ColorPicker /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/line" element={
-            <ProtectedRoute>
-              <AppLayout><Line /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/area" element={
-            <ProtectedRoute>
-              <AppLayout><Area /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/bar" element={
-            <ProtectedRoute>
-              <AppLayout><Bar /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/pie" element={
-            <ProtectedRoute>
-              <AppLayout><Pie /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/financial" element={
-            <ProtectedRoute>
-              <AppLayout><Financial /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/color-mapping" element={
-            <ProtectedRoute>
-              <AppLayout><ColorMapping /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/pyramid" element={
-            <ProtectedRoute>
-              <AppLayout><Pyramid /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/stacked" element={
-            <ProtectedRoute>
-              <AppLayout><Stacked /></AppLayout>
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/data-upload"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><DataUpload /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/variable-workshop"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><VariableWorkshop /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/variable-charts"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><Charts /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/decomposition"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><Decomposition /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/model-diagnostics"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><ModelDiagnostics /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/contribution-groups"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><ContributionGroups /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/variable-testing"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><VariableTesting /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/curve-testing"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><CurveTesting /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/model-builder"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><ModelBuilder /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/model-library"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><ModelLibrary /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/orders"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><Orders /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/employees"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><Employees /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/customers"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><Customers /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/kanban"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><Kanban /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/editor"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><Editor /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/calendar"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><Calendar /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/color-picker"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><ColorPicker /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/line"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><Line /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/area"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><Area /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/bar"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><Bar /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/pie"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><Pie /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/financial"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><Financial /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/color-mapping"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><ColorMapping /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/pyramid"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><Pyramid /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
+          <Route
+            path="/stacked"
+            element={(
+              <ProtectedRoute>
+                <AppLayout><Stacked /></AppLayout>
+              </ProtectedRoute>
+          )}
+          />
         </Routes>
       </BrowserRouter>
-      </Elements>
-    </ClerkProvider>
-  );
-};
+    </Elements>
+  </ClerkProvider>
+);
 
 export default App;

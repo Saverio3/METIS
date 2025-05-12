@@ -3,7 +3,7 @@ import { MdOutlineCancel } from 'react-icons/md';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 
-import { Button } from '.';
+import Button from './Button';
 import { userProfileData } from '../data/dummy';
 import { useStateContext } from '../contexts/ContextProvider';
 import avatar from '../data/avatar.jpg';

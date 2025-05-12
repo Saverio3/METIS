@@ -10,23 +10,23 @@ import {
   Toolbar,
   Edit,
   Sort,
-  Filter
+  Filter,
 } from '@syncfusion/ej2-react-grids';
 import {
-  DropDownListComponent
+  DropDownListComponent,
 } from '@syncfusion/ej2-react-dropdowns';
 import {
-  ButtonComponent
+  ButtonComponent,
 } from '@syncfusion/ej2-react-buttons';
 import {
-  DialogComponent
+  DialogComponent,
 } from '@syncfusion/ej2-react-popups';
+import { FiSave, FiRefreshCw, FiDownload, FiEdit, FiTrash2, FiCopy, FiPlus, FiFilter, FiSearch } from 'react-icons/fi';
+import { MdCompareArrows } from 'react-icons/md';
 import { Header } from '../components';
 import { useStateContext } from '../contexts/ContextProvider';
 import apiService from '../services/api';
 import ErrorBoundary from '../components/ErrorBoundary';
-import { FiSave, FiRefreshCw, FiDownload, FiEdit, FiTrash2, FiCopy, FiPlus, FiFilter, FiSearch } from 'react-icons/fi';
-import { MdCompareArrows } from 'react-icons/md';
 
 const ModelLibrary = () => {
   const { currentColor } = useStateContext();
@@ -86,20 +86,20 @@ const ModelLibrary = () => {
       const response = await apiService.listModels();
       if (response.success) {
         // No need for notes now
-        const enhancedModels = response.models.map(model => ({
+        const enhancedModels = response.models.map((model) => ({
           ...model,
-          lastModified: model.created || 'Unknown'
+          lastModified: model.created || 'Unknown',
         }));
 
         setModels(enhancedModels);
         setFilteredModels(enhancedModels);
       } else {
-        setError('Failed to load models: ' + response.error);
+        setError(`Failed to load models: ${response.error}`);
       }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching models:', error);
-      setError('Error loading models: ' + error.message);
+      setError(`Error loading models: ${error.message}`);
       setLoading(false);
     }
   };
@@ -182,11 +182,11 @@ const ModelLibrary = () => {
         setSuccess(`Model renamed from "${originalName}" to "${newModelName}"`);
         await fetchModels(); // Refresh the model list
       } else {
-        setError('Failed to rename model: ' + response.error);
+        setError(`Failed to rename model: ${response.error}`);
       }
     } catch (error) {
       console.error('Error renaming model:', error);
-      setError('Error renaming model: ' + error.message);
+      setError(`Error renaming model: ${error.message}`);
     } finally {
       setLoading(false);
       setEditingModelName(null);
@@ -200,7 +200,7 @@ const ModelLibrary = () => {
 
     if (text) {
       const filtered = models.filter(
-        model => model.name.toLowerCase().includes(text.toLowerCase())
+        (model) => model.name.toLowerCase().includes(text.toLowerCase()),
       );
       setFilteredModels(filtered);
     } else {
@@ -210,18 +210,16 @@ const ModelLibrary = () => {
 
   // Handle model selection
   const handleModelSelect = (model) => {
-    setSelectedModels(prev => {
+    setSelectedModels((prev) => {
       if (prev.includes(model.name)) {
-        return prev.filter(name => name !== model.name);
-      } else {
-        // Limit to 2 selections for comparison
-        if (prev.length < 2) {
-          return [...prev, model.name];
-        } else {
-          // Replace the oldest selection
-          return [prev[1], model.name];
-        }
+        return prev.filter((name) => name !== model.name);
       }
+      // Limit to 2 selections for comparison
+      if (prev.length < 2) {
+        return [...prev, model.name];
+      }
+      // Replace the oldest selection
+      return [prev[1], model.name];
     });
   };
 
@@ -259,11 +257,11 @@ const ModelLibrary = () => {
       // Get all unique variable names
       const allVars = new Set([
         ...Object.keys(model1Vars),
-        ...Object.keys(model2Vars)
+        ...Object.keys(model2Vars),
       ]);
 
       // Create comparison data
-      const comparison = Array.from(allVars).map(varName => {
+      const comparison = Array.from(allVars).map((varName) => {
         const var1 = model1Vars[varName];
         const var2 = model2Vars[varName];
 
@@ -289,10 +287,10 @@ const ModelLibrary = () => {
           model1TStat: var1 ? var1.tStat : null,
           model2Coef: var2 ? var2.coefficient : null,
           model2TStat: var2 ? var2.tStat : null,
-          coefChange: coefChange,
-          tStatChange: tStatChange,
+          coefChange,
+          tStatChange,
           inModel1: !!var1,
-          inModel2: !!var2
+          inModel2: !!var2,
         };
       });
 
@@ -309,7 +307,7 @@ const ModelLibrary = () => {
       setLoading(false);
     } catch (error) {
       console.error('Error comparing models:', error);
-      setError('Error comparing models: ' + error.message);
+      setError(`Error comparing models: ${error.message}`);
       setLoading(false);
     }
   };
@@ -321,8 +319,8 @@ const ModelLibrary = () => {
       setError(null); // Clear any previous errors
 
       // Find the model to get its export path
-      const model = models.find(m => m.name === modelName);
-      let modelPath = model?.exportPath || "";
+      const model = models.find((m) => m.name === modelName);
+      let modelPath = model?.exportPath || '';
 
       // If a path is provided, ensure it ends with a filename
       if (modelPath) {
@@ -341,14 +339,14 @@ const ModelLibrary = () => {
 
       // Call the API with the model's path
       const response = await apiService.exportModelToExcel(modelName, modelPath);
-      console.log("Export response:", response);
+      console.log('Export response:', response);
 
       if (response.success) {
         setSuccess(`Model "${modelName}" exported successfully to ${response.filePath || 'downloads'}`);
       } else {
         // Handle API error
         const errorMsg = response.error || 'Unknown error occurred';
-        console.error("Export failed:", errorMsg);
+        console.error('Export failed:', errorMsg);
         setError(`Export failed: ${errorMsg}`);
       }
 
@@ -376,13 +374,13 @@ const ModelLibrary = () => {
         setSuccess(`Model "${modelName}" cloned successfully as "${newModelName}"`);
         fetchModels(); // Refresh models list
       } else {
-        setError('Failed to clone model: ' + response.error);
+        setError(`Failed to clone model: ${response.error}`);
       }
 
       setLoading(false);
     } catch (error) {
       console.error('Error cloning model:', error);
-      setError('Error cloning model: ' + error.message);
+      setError(`Error cloning model: ${error.message}`);
       setLoading(false);
     }
   };
@@ -408,9 +406,9 @@ const ModelLibrary = () => {
       }
 
       // Assuming you have a model selected - use the first selected model or ask user
-      const modelToFilter = selectedModels.length > 0 ?
-                            selectedModels[0] :
-                            prompt("Enter the name of the model to filter:");
+      const modelToFilter = selectedModels.length > 0
+        ? selectedModels[0]
+        : prompt('Enter the name of the model to filter:');
 
       if (!modelToFilter) {
         setLoading(false);
@@ -451,52 +449,50 @@ const ModelLibrary = () => {
         setSuccess(`Model "${modelName}" deleted successfully`);
         fetchModels(); // Refresh models list
       } else {
-        setError('Failed to delete model: ' + response.error);
+        setError(`Failed to delete model: ${response.error}`);
       }
 
       setLoading(false);
     } catch (error) {
       console.error('Error deleting model:', error);
-      setError('Error deleting model: ' + error.message);
+      setError(`Error deleting model: ${error.message}`);
       setLoading(false);
     }
   };
 
   // Template for the action buttons column
-  const actionsTemplate = (props) => {
-    return (
-      <div className="flex space-x-2">
-        <button
-          onClick={() => startModelNameEdit(props.name)}
-          className="p-1 text-indigo-600 hover:bg-indigo-100 rounded"
-          title="Rename Model"
-        >
-          <FiEdit size={18} />
-        </button>
-        <button
-          onClick={() => exportModel(props.name)}
-          className="p-1 text-green-600 hover:bg-green-100 rounded"
-          title="Export Model"
-        >
-          <FiDownload size={18} />
-        </button>
-        <button
-          onClick={() => cloneModel(props.name)}
-          className="p-1 text-purple-600 hover:bg-purple-100 rounded"
-          title="Clone Model"
-        >
-          <FiCopy size={18} />
-        </button>
-        <button
-          onClick={() => deleteModel(props.name)}
-          className="p-1 text-red-600 hover:bg-red-100 rounded"
-          title="Delete Model"
-        >
-          <FiTrash2 size={18} />
-        </button>
-      </div>
-    );
-  };
+  const actionsTemplate = (props) => (
+    <div className="flex space-x-2">
+      <button
+        onClick={() => startModelNameEdit(props.name)}
+        className="p-1 text-indigo-600 hover:bg-indigo-100 rounded"
+        title="Rename Model"
+      >
+        <FiEdit size={18} />
+      </button>
+      <button
+        onClick={() => exportModel(props.name)}
+        className="p-1 text-green-600 hover:bg-green-100 rounded"
+        title="Export Model"
+      >
+        <FiDownload size={18} />
+      </button>
+      <button
+        onClick={() => cloneModel(props.name)}
+        className="p-1 text-purple-600 hover:bg-purple-100 rounded"
+        title="Clone Model"
+      >
+        <FiCopy size={18} />
+      </button>
+      <button
+        onClick={() => deleteModel(props.name)}
+        className="p-1 text-red-600 hover:bg-red-100 rounded"
+        title="Delete Model"
+      >
+        <FiTrash2 size={18} />
+      </button>
+    </div>
+  );
 
   // Custom template for model name column to allow inline editing
   const modelNameTemplate = (props) => {
@@ -525,16 +521,14 @@ const ModelLibrary = () => {
   };
 
   // Template for the selection column
-  const selectionTemplate = (props) => {
-    return (
-      <input
-        type="checkbox"
-        checked={selectedModels.includes(props.name)}
-        onChange={() => handleModelSelect(props)}
-        className="form-checkbox h-5 w-5 text-blue-600"
-      />
-    );
-  };
+  const selectionTemplate = (props) => (
+    <input
+      type="checkbox"
+      checked={selectedModels.includes(props.name)}
+      onChange={() => handleModelSelect(props)}
+      className="form-checkbox h-5 w-5 text-blue-600"
+    />
+  );
 
   // Format the coefficient or t-stat column for comparison table
   const formatComparisonCell = (value, change = null) => {
@@ -565,7 +559,6 @@ const ModelLibrary = () => {
         <div className="mb-6 flex justify-end items-center">
           <div className="flex flex-wrap gap-3 items-center">
 
-
             {/* Compare button */}
             <ButtonComponent
               cssClass="e-primary"
@@ -591,8 +584,8 @@ const ModelLibrary = () => {
                 Refresh
               </div>
             </ButtonComponent>
-                        {/* Search box - Now positioned to the right of the buttons */}
-                        <div className="relative w-56">
+            {/* Search box - Now positioned to the right of the buttons */}
+            <div className="relative w-56">
               <input
                 type="text"
                 className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -638,7 +631,7 @@ const ModelLibrary = () => {
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Select KPI Variable</label>
                 <DropDownListComponent
-                  dataSource={variables.map(v => ({ text: v.name, value: v.name }))}
+                  dataSource={variables.map((v) => ({ text: v.name, value: v.name }))}
                   fields={{ text: 'text', value: 'value' }}
                   value={selectedKPI}
                   change={(e) => setSelectedKPI(e.value)}
@@ -651,7 +644,7 @@ const ModelLibrary = () => {
                 style={{
                   backgroundColor: currentColor,
                   borderColor: currentColor,
-                  width: '100%'
+                  width: '100%',
                 }}
                 onClick={handleCreateModel}
                 disabled={!newModelNameForCreate || !selectedKPI || loading}
@@ -692,7 +685,7 @@ const ModelLibrary = () => {
                 style={{
                   backgroundColor: currentColor,
                   borderColor: currentColor,
-                  width: '100%'
+                  width: '100%',
                 }}
                 onClick={handleApplyDateFilter}
                 disabled={!startDate || !endDate || loading}
@@ -712,15 +705,15 @@ const ModelLibrary = () => {
                 <div
                   className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"
                   style={{ borderColor: currentColor }}
-                ></div>
+                />
                 <p className="ml-2">Loading models...</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <GridComponent
                   dataSource={filteredModels}
-                  allowPaging={true}
-                  allowSorting={true}
+                  allowPaging
+                  allowSorting
                   pageSettings={{ pageSize: 10 }}
                   height="500px"
                   width="100%"
@@ -748,38 +741,34 @@ const ModelLibrary = () => {
                       format="P4"
                       textAlign="Right"
                       template={(props) => (
-                        <div>{props.rsquared !== null ? (props.rsquared * 100).toFixed(2) + '%' : '-'}</div>
+                        <div>{props.rsquared !== null ? `${(props.rsquared * 100).toFixed(2)}%` : '-'}</div>
                       )}
                     />
                     <ColumnDirective field="lastModified" headerText="Last Modified" width="150" />
                     <ColumnDirective
-  field="exportPath"
-  headerText="Export Path"
-  width="200"
-  template={(props) => (
-    <div className="relative">
-      <input
-        type="text"
-        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-        placeholder="Export path (optional)"
-        defaultValue={props.exportPath || ""}
-        onChange={(e) => {
-          // Update the model's export path in the local state
-          const updatedModels = models.map(model =>
-            model.name === props.name ? {...model, exportPath: e.target.value} : model
-          );
-          setModels(updatedModels);
+                      field="exportPath"
+                      headerText="Export Path"
+                      width="200"
+                      template={(props) => (
+                        <div className="relative">
+                          <input
+                            type="text"
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                            placeholder="Export path (optional)"
+                            defaultValue={props.exportPath || ''}
+                            onChange={(e) => {
+                              // Update the model's export path in the local state
+                              const updatedModels = models.map((model) => (model.name === props.name ? { ...model, exportPath: e.target.value } : model));
+                              setModels(updatedModels);
 
-          // Also update filtered models
-          const updatedFilteredModels = filteredModels.map(model =>
-            model.name === props.name ? {...model, exportPath: e.target.value} : model
-          );
-          setFilteredModels(updatedFilteredModels);
-        }}
-      />
-    </div>
-  )}
-/>
+                              // Also update filtered models
+                              const updatedFilteredModels = filteredModels.map((model) => (model.name === props.name ? { ...model, exportPath: e.target.value } : model));
+                              setFilteredModels(updatedFilteredModels);
+                            }}
+                          />
+                        </div>
+                      )}
+                    />
                     <ColumnDirective
                       field="actions"
                       headerText="Actions"
@@ -798,8 +787,8 @@ const ModelLibrary = () => {
         <DialogComponent
           width="90%"
           height="80%"
-          isModal={true}
-          showCloseIcon={true}
+          isModal
+          showCloseIcon
           visible={showCompareDialog}
           close={() => setShowCompareDialog(false)}
           header="Model Comparison"
@@ -852,7 +841,7 @@ const ModelLibrary = () => {
                         {selectedModels[1]} T-Stat
                       </th>
                       <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Coef. Change
+                        Coef. Change
                       </th>
                       <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                         T-Stat Change
@@ -866,9 +855,9 @@ const ModelLibrary = () => {
                           {row.variableName}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {row.inModel1 && row.inModel2 ? 'Both' :
-                           row.inModel1 ? selectedModels[0] :
-                           row.inModel2 ? selectedModels[1] : 'None'}
+                          {row.inModel1 && row.inModel2 ? 'Both'
+                            : row.inModel1 ? selectedModels[0]
+                              : row.inModel2 ? selectedModels[1] : 'None'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           {formatComparisonCell(row.model1Coef)}

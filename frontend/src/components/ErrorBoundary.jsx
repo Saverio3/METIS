@@ -13,10 +13,10 @@ class ErrorBoundary extends Component {
 
   componentDidCatch(error, errorInfo) {
     // You can also log the error to an error reporting service
-    console.error("Error caught by ErrorBoundary:", error, errorInfo);
+    console.error('Error caught by ErrorBoundary:', error, errorInfo);
     this.setState({
-      error: error,
-      errorInfo: errorInfo
+      error,
+      errorInfo,
     });
   }
 
@@ -26,10 +26,10 @@ class ErrorBoundary extends Component {
       return (
         <div className="p-4 bg-red-50 border border-red-200 rounded-md">
           <h3 className="text-lg font-medium text-red-800 mb-2">
-            {this.props.fallbackTitle || "Something went wrong with this component"}
+            {this.props.fallbackTitle || 'Something went wrong with this component'}
           </h3>
           <p className="text-sm text-red-600 mb-4">
-            {this.props.fallbackMessage || "There was an error rendering this component. Please try again or contact support if the issue persists."}
+            {this.props.fallbackMessage || 'There was an error rendering this component. Please try again or contact support if the issue persists.'}
           </p>
           {this.props.showError && this.state.error && (
             <div className="text-xs text-red-500 bg-red-100 p-2 rounded overflow-auto max-h-40">

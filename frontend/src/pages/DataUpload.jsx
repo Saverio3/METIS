@@ -57,7 +57,7 @@ const UploadCard = ({ title, icon, description, onUpload, fileType, uploading, u
 
           {uploading ? (
             <div className="text-center">
-              <div className="loader mb-3"></div>
+              <div className="loader mb-3" />
               <p className="text-gray-600 dark:text-gray-400">Uploading...</p>
             </div>
           ) : uploadSuccess ? (
@@ -146,7 +146,7 @@ const DataSummaryCard = ({ title, icon, data = null }) => {
                       toolbar={['Search']}
                       width="1419px"
                       height="300px"
-                      enableHover={true}
+                      enableHover
                       rowHeight={40}
                       textWrapSettings={{ wrapMode: 'Header' }}
                       emptyRecordTemplate=""
@@ -157,8 +157,8 @@ const DataSummaryCard = ({ title, icon, data = null }) => {
                           field="date"
                           headerText="Date/Observation"
                           width="140"
-                          isPrimaryKey={true}
-                          freeze={true}
+                          isPrimaryKey
+                          freeze
                           textAlign="Left"
                         />
                         {data.preview[0] && Object.keys(data.preview[0]).map((column, index) => (
@@ -214,12 +214,12 @@ const DataUpload = () => {
         const summary = {
           'File Name': file.name,
           'File Size': `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-          'Variables': response.variables.length,
-          'Observations': response.summary.n_observations,
+          Variables: response.variables.length,
+          Observations: response.summary.n_observations,
           'Date Range': response.summary.date_range,
-          'Regions': response.summary.region_count || 1,
-          'preview': response.preview,
-          'dates': response.dates
+          Regions: response.summary.region_count || 1,
+          preview: response.preview,
+          dates: response.dates,
         };
         setDataSummary(summary);
       } else {
@@ -245,10 +245,10 @@ const DataUpload = () => {
         setModelUploadSuccess(true);
         const summary = {
           'Model Name': response.model.name,
-          'KPI': response.model.kpi,
-          'Features': response.model.features.length,
+          KPI: response.model.kpi,
+          Features: response.model.features.length,
           'R-squared': response.model.rsquared?.toFixed(4) || 'N/A',
-          'Observations': response.model.obs || 'N/A',
+          Observations: response.model.obs || 'N/A',
         };
         setModelSummary(summary);
       } else {

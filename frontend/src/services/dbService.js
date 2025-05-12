@@ -12,19 +12,19 @@ const api = axios.create({
 });
 
 // Add request interceptor for better debugging
-api.interceptors.request.use(config => {
+api.interceptors.request.use((config) => {
   console.log(`DB API Request: ${config.method.toUpperCase()} ${config.url}`, config.data);
   return config;
-}, error => {
+}, (error) => {
   console.error('DB API Request Error:', error);
   return Promise.reject(error);
 });
 
 // Add response interceptor for better debugging
-api.interceptors.response.use(response => {
+api.interceptors.response.use((response) => {
   console.log(`DB API Response: ${response.status} from ${response.config.url}`, response.data);
   return response;
-}, error => {
+}, (error) => {
   console.error('DB API Response Error:', error);
   if (error.response) {
     console.error('Error Details:', error.response.data);

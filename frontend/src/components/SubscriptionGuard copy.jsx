@@ -28,9 +28,9 @@ const SubscriptionGuard = ({ children }) => {
       setIsLoading(true);
       const response = await apiService.getStripeSubscriptionStatus(user.id);
 
-      if (response.success &&
-          response.subscription &&
-          response.subscription.status === 'active') {
+      if (response.success
+          && response.subscription
+          && response.subscription.status === 'active') {
         // User has an active subscription
         setHasSubscription(true);
       } else {
@@ -58,9 +58,10 @@ const SubscriptionGuard = ({ children }) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2"
-          style={{ borderColor: currentColor }}>
-        </div>
+        <div
+          className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2"
+          style={{ borderColor: currentColor }}
+        />
         <p className="ml-2">Verifying subscription...</p>
       </div>
     );

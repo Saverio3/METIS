@@ -63,7 +63,7 @@ const Landing = () => {
     const animateOnScroll = () => {
       const elements = document.querySelectorAll('.fade-in, .slide-in');
 
-      elements.forEach(element => {
+      elements.forEach((element) => {
         const elementTop = element.getBoundingClientRect().top;
         const elementVisible = 150;
 
@@ -390,48 +390,49 @@ const Landing = () => {
                 opacity: 1;
             }
         }
-      `}</style>
+      `}
+      </style>
 
       {/* Navbar */}
       <nav className="fixed w-full bg-white bg-opacity-90 backdrop-filter backdrop-blur-lg shadow-sm z-50">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div className="flex justify-between h-16">
-      <div className="flex-shrink-0 flex items-center">
-        <span className="text-2xl font-bold text-gradient">METIS MMM</span>
-      </div>
-      <div className="hidden md:flex items-center">
-        <div className="flex space-x-8 px-2"> {/* Increased spacing between navigation items */}
-          <a href="#features" className="nav-link">Features</a>
-          <a href="#advantages" className="nav-link">Advantages</a>
-          <a href="#comparison" className="nav-link">Comparison</a>
-          <a href="#pricing" className="nav-link">Pricing</a>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex-shrink-0 flex items-center">
+              <span className="text-2xl font-bold text-gradient">METIS MMM</span>
+            </div>
+            <div className="hidden md:flex items-center">
+              <div className="flex space-x-8 px-2"> {/* Increased spacing between navigation items */}
+                <a href="#features" className="nav-link">Features</a>
+                <a href="#advantages" className="nav-link">Advantages</a>
+                <a href="#comparison" className="nav-link">Comparison</a>
+                <a href="#pricing" className="nav-link">Pricing</a>
+              </div>
+              <div className="flex space-x-4 ml-6"> {/* Added container for buttons with appropriate spacing */}
+                <a href="/sign-in" className="btn-secondary">Login</a>
+                <a href="/sign-up" className="btn-primary">Get Started</a>
+              </div>
+            </div>
+            <div className="md:hidden flex items-center">
+              <button className="text-gray-600 focus:outline-none">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="flex space-x-4 ml-6"> {/* Added container for buttons with appropriate spacing */}
-          <a href="/sign-in" className="btn-secondary">Login</a>
-          <a href="/sign-up" className="btn-primary">Get Started</a>
-        </div>
-      </div>
-      <div className="md:hidden flex items-center">
-        <button className="text-gray-600 focus:outline-none">
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
-  </div>
-</nav>
+      </nav>
 
       {/* Hero Section */}
       <section className="relative pt-20 pb-32 overflow-hidden">
         <div className="equation-bg">
-          <div className="equation" style={{ top: "10%", left: "5%" }}>Y = β₀ + β₁X₁ + β₂X₂ + ε</div>
-          <div className="equation" style={{ top: "30%", left: "25%" }}>Y = αₓ + βₓ ln(1+X/γₓ)</div>
-          <div className="equation" style={{ top: "50%", left: "15%" }}>R² = 1 - Σ(y-ŷ)²/Σ(y-ȳ)²</div>
-          <div className="equation" style={{ top: "20%", left: "60%" }}>∂Y/∂X = β(X/γ)^(α-1)/(1+(X/γ)^α)</div>
-          <div className="equation" style={{ top: "70%", left: "40%" }}>t = β/SE(β)</div>
-          <div className="equation" style={{ top: "40%", left: "75%" }}>X_adstock = X_t + λX_(t-1)</div>
-          <div className="equation" style={{ top: "80%", left: "65%" }}>VIF = 1/(1-R²)</div>
+          <div className="equation" style={{ top: '10%', left: '5%' }}>Y = β₀ + β₁X₁ + β₂X₂ + ε</div>
+          <div className="equation" style={{ top: '30%', left: '25%' }}>Y = αₓ + βₓ ln(1+X/γₓ)</div>
+          <div className="equation" style={{ top: '50%', left: '15%' }}>R² = 1 - Σ(y-ŷ)²/Σ(y-ȳ)²</div>
+          <div className="equation" style={{ top: '20%', left: '60%' }}>∂Y/∂X = β(X/γ)^(α-1)/(1+(X/γ)^α)</div>
+          <div className="equation" style={{ top: '70%', left: '40%' }}>t = β/SE(β)</div>
+          <div className="equation" style={{ top: '40%', left: '75%' }}>X_adstock = X_t + λX_(t-1)</div>
+          <div className="equation" style={{ top: '80%', left: '65%' }}>VIF = 1/(1-R²)</div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-32 relative z-10">
@@ -440,17 +441,17 @@ const Landing = () => {
               <div className="typewriter">
                 <h1 className="text-5xl font-bold leading-tight mb-6">Marketing Mix</h1>
               </div>
-              <p className="text-xl text-gray-600 mb-8 slide-in" style={{ animationDelay: "0.5s" }}>
+              <p className="text-xl text-gray-600 mb-8 slide-in" style={{ animationDelay: '0.5s' }}>
                 Unlock the power of your marketing data with our advanced MMM platform. Build sophisticated models without coding, analyze ROI, and optimize your marketing spend.
               </p>
-              <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 slide-in" style={{ animationDelay: "1s" }}>
-              <button type="button" onClick={handleGetStarted} className="btn-primary">Start Free Trial</button>
+              <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 slide-in" style={{ animationDelay: '1s' }}>
+                <button type="button" onClick={handleGetStarted} className="btn-primary">Start Free Trial</button>
                 <a href="#features" className="btn-secondary">Explore Features</a>
               </div>
             </div>
             <div className="col-span-1 hidden md:block">
               <div className="relative">
-                <div className="absolute inset-0 bg-indigo-500 bg-opacity-10 rounded-lg transform rotate-3"></div>
+                <div className="absolute inset-0 bg-indigo-500 bg-opacity-10 rounded-lg transform rotate-3" />
                 <div className="relative bg-white p-6 rounded-lg shadow-xl floating">
                   {/* SVG Graph Animation */}
                   <svg width="100%" height="300" viewBox="0 0 500 300">
@@ -473,28 +474,39 @@ const Landing = () => {
                     <text x="425" y="270" fontSize="12" textAnchor="middle">Jun</text>
 
                     {/* Actual line */}
-                    <path d="M50,200 L125,180 L200,120 L275,150 L350,100 L425,80"
-                          fill="none" stroke="#6366F1" strokeWidth="3" className="graph-line" />
+                    <path
+                      d="M50,200 L125,180 L200,120 L275,150 L350,100 L425,80"
+                      fill="none"
+                      stroke="#6366F1"
+                      strokeWidth="3"
+                      className="graph-line"
+                    />
 
                     {/* Predicted line */}
-                    <path d="M50,210 L125,175 L200,130 L275,145 L350,105 L425,85"
-                          fill="none" stroke="#10B981" strokeWidth="3" strokeDasharray="5,5" className="graph-line" />
+                    <path
+                      d="M50,210 L125,175 L200,130 L275,145 L350,105 L425,85"
+                      fill="none"
+                      stroke="#10B981"
+                      strokeWidth="3"
+                      strokeDasharray="5,5"
+                      className="graph-line"
+                    />
 
                     {/* Data points - Actual */}
-                    <circle cx="50" cy="200" r="5" fill="#6366F1" className="dot" style={{ "--index": "0" }} />
-                    <circle cx="125" cy="180" r="5" fill="#6366F1" className="dot" style={{ "--index": "1" }} />
-                    <circle cx="200" cy="120" r="5" fill="#6366F1" className="dot" style={{ "--index": "2" }} />
-                    <circle cx="275" cy="150" r="5" fill="#6366F1" className="dot" style={{ "--index": "3" }} />
-                    <circle cx="350" cy="100" r="5" fill="#6366F1" className="dot" style={{ "--index": "4" }} />
-                    <circle cx="425" cy="80" r="5" fill="#6366F1" className="dot" style={{ "--index": "5" }} />
+                    <circle cx="50" cy="200" r="5" fill="#6366F1" className="dot" style={{ '--index': '0' }} />
+                    <circle cx="125" cy="180" r="5" fill="#6366F1" className="dot" style={{ '--index': '1' }} />
+                    <circle cx="200" cy="120" r="5" fill="#6366F1" className="dot" style={{ '--index': '2' }} />
+                    <circle cx="275" cy="150" r="5" fill="#6366F1" className="dot" style={{ '--index': '3' }} />
+                    <circle cx="350" cy="100" r="5" fill="#6366F1" className="dot" style={{ '--index': '4' }} />
+                    <circle cx="425" cy="80" r="5" fill="#6366F1" className="dot" style={{ '--index': '5' }} />
 
                     {/* Data points - Predicted */}
-                    <circle cx="50" cy="210" r="5" fill="#10B981" className="dot" style={{ "--index": "6" }} />
-                    <circle cx="125" cy="175" r="5" fill="#10B981" className="dot" style={{ "--index": "7" }} />
-                    <circle cx="200" cy="130" r="5" fill="#10B981" className="dot" style={{ "--index": "8" }} />
-                    <circle cx="275" cy="145" r="5" fill="#10B981" className="dot" style={{ "--index": "9" }} />
-                    <circle cx="350" cy="105" r="5" fill="#10B981" className="dot" style={{ "--index": "10" }} />
-                    <circle cx="425" cy="85" r="5" fill="#10B981" className="dot" style={{ "--index": "11" }} />
+                    <circle cx="50" cy="210" r="5" fill="#10B981" className="dot" style={{ '--index': '6' }} />
+                    <circle cx="125" cy="175" r="5" fill="#10B981" className="dot" style={{ '--index': '7' }} />
+                    <circle cx="200" cy="130" r="5" fill="#10B981" className="dot" style={{ '--index': '8' }} />
+                    <circle cx="275" cy="145" r="5" fill="#10B981" className="dot" style={{ '--index': '9' }} />
+                    <circle cx="350" cy="105" r="5" fill="#10B981" className="dot" style={{ '--index': '10' }} />
+                    <circle cx="425" cy="85" r="5" fill="#10B981" className="dot" style={{ '--index': '11' }} />
 
                     {/* Legend */}
                     <rect x="330" y="20" width="12" height="3" fill="#6366F1" />
@@ -510,19 +522,19 @@ const Landing = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-blue-400 mr-2"></div>
+                      <div className="w-3 h-3 rounded-full bg-blue-400 mr-2" />
                       <span>TV: <span className="font-medium">42%</span></span>
                     </div>
                     <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-purple-400 mr-2"></div>
+                      <div className="w-3 h-3 rounded-full bg-purple-400 mr-2" />
                       <span>Digital: <span className="font-medium">28%</span></span>
                     </div>
                     <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-yellow-400 mr-2"></div>
+                      <div className="w-3 h-3 rounded-full bg-yellow-400 mr-2" />
                       <span>Print: <span className="font-medium">15%</span></span>
                     </div>
                     <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-green-400 mr-2"></div>
+                      <div className="w-3 h-3 rounded-full bg-green-400 mr-2" />
                       <span>Radio: <span className="font-medium">15%</span></span>
                     </div>
                   </div>
@@ -534,7 +546,7 @@ const Landing = () => {
 
         <div className="wave">
           <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" className="shape-fill"></path>
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" className="shape-fill" />
           </svg>
         </div>
       </section>
@@ -551,7 +563,7 @@ const Landing = () => {
             {/* Feature 1 */}
             <div className="feature-card bg-white rounded-xl p-6">
               <div className="h-12 w-12 flex items-center justify-center rounded-md bg-indigo-100 text-indigo-600 mb-4">
-                <i className="fas fa-upload text-xl"></i>
+                <i className="fas fa-upload text-xl" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Secure Data Upload</h3>
               <p className="text-gray-600">Import data from Excel with complete privacy. Nothing is stored online – your data stays on your device.</p>
@@ -560,7 +572,7 @@ const Landing = () => {
             {/* Feature 2 */}
             <div className="feature-card bg-white rounded-xl p-6">
               <div className="h-12 w-12 flex items-center justify-center rounded-md bg-indigo-100 text-indigo-600 mb-4">
-                <i className="fas fa-chart-line text-xl"></i>
+                <i className="fas fa-chart-line text-xl" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Variable Workshop</h3>
               <p className="text-gray-600">Transform, split, lag, or create weighted variables. Build S-curves and diminishing returns models without coding.</p>
@@ -569,7 +581,7 @@ const Landing = () => {
             {/* Feature 3 */}
             <div className="feature-card bg-white rounded-xl p-6">
               <div className="h-12 w-12 flex items-center justify-center rounded-md bg-indigo-100 text-indigo-600 mb-4">
-                <i className="fas fa-flask text-xl"></i>
+                <i className="fas fa-flask text-xl" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Variable Testing</h3>
               <p className="text-gray-600">Test variables before adding them to your model. Preview coefficient changes and statistic improvements.</p>
@@ -578,7 +590,7 @@ const Landing = () => {
             {/* Feature 4 */}
             <div className="feature-card bg-white rounded-xl p-6">
               <div className="h-12 w-12 flex items-center justify-center rounded-md bg-indigo-100 text-indigo-600 mb-4">
-                <i className="fas fa-file-alt text-xl"></i>
+                <i className="fas fa-file-alt text-xl" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Model Diagnostics</h3>
               <p className="text-gray-600">Run comprehensive diagnostic tests to validate your model, from multicollinearity to heteroscedasticity tests.</p>
@@ -587,7 +599,7 @@ const Landing = () => {
             {/* Feature 5 */}
             <div className="feature-card bg-white rounded-xl p-6">
               <div className="h-12 w-12 flex items-center justify-center rounded-md bg-indigo-100 text-indigo-600 mb-4">
-                <i className="fas fa-puzzle-piece text-xl"></i>
+                <i className="fas fa-puzzle-piece text-xl" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Decomposition Analysis</h3>
               <p className="text-gray-600">Break down model results to see the contribution of each variable or group to your KPI over time.</p>
@@ -596,7 +608,7 @@ const Landing = () => {
             {/* Feature 6 */}
             <div className="feature-card bg-white rounded-xl p-6">
               <div className="h-12 w-12 flex items-center justify-center rounded-md bg-indigo-100 text-indigo-600 mb-4">
-                <i className="fas fa-download text-xl"></i>
+                <i className="fas fa-download text-xl" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Excel Export</h3>
               <p className="text-gray-600">Export your complete model, including transformations, coefficients, and diagnostics to Excel for sharing.</p>
@@ -627,19 +639,19 @@ const Landing = () => {
                   <ul className="space-y-3">
                     <li className="flex items-start">
                       <svg className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span>Build S-curves and diminishing returns curves with a simple interface</span>
                     </li>
                     <li className="flex items-start">
                       <svg className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span>Transform variables with built-in functions</span>
                     </li>
                     <li className="flex items-start">
                       <svg className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span>Run diagnostic tests with a single click</span>
                     </li>
@@ -655,13 +667,13 @@ const Landing = () => {
                   <ul className="space-y-3">
                     <li className="flex items-start">
                       <svg className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span>No data storage on external servers</span>
                     </li>
                     <li className="flex items-start">
                       <svg className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span>Compliant with strict corporate security policies</span>
                     </li>
@@ -677,9 +689,9 @@ const Landing = () => {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center">
-                      <div className="h-3 w-3 rounded-full bg-red-500 mr-2"></div>
-                      <div className="h-3 w-3 rounded-full bg-yellow-500 mr-2"></div>
-                      <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                      <div className="h-3 w-3 rounded-full bg-red-500 mr-2" />
+                      <div className="h-3 w-3 rounded-full bg-yellow-500 mr-2" />
+                      <div className="h-3 w-3 rounded-full bg-green-500" />
                     </div>
                     <div className="text-sm font-medium">METIS MMM Dashboard</div>
                   </div>
@@ -690,10 +702,10 @@ const Landing = () => {
                       <h4 className="font-medium">Marketing ROI Dashboard</h4>
                       <div className="flex space-x-2">
                         <div className="h-6 w-6 bg-gray-100 rounded flex items-center justify-center text-xs">
-                          <i className="fas fa-sync-alt"></i>
+                          <i className="fas fa-sync-alt" />
                         </div>
                         <div className="h-6 w-6 bg-gray-100 rounded flex items-center justify-center text-xs">
-                          <i className="fas fa-download"></i>
+                          <i className="fas fa-download" />
                         </div>
                       </div>
                     </div>
@@ -706,27 +718,27 @@ const Landing = () => {
                       </div>
                       <div className="flex items-end h-32 space-x-6">
                         <div className="flex flex-col items-center flex-1">
-                          <div className="w-full bg-blue-500 rounded-t chart-bar" style={{ height: "80%" }}></div>
+                          <div className="w-full bg-blue-500 rounded-t chart-bar" style={{ height: '80%' }} />
                           <div className="text-xs mt-1">TV</div>
                           <div className="text-xs font-medium">$3.2</div>
                         </div>
                         <div className="flex flex-col items-center flex-1">
-                          <div className="w-full bg-purple-500 rounded-t chart-bar" style={{ height: "90%", animationDelay: "0.2s" }}></div>
+                          <div className="w-full bg-purple-500 rounded-t chart-bar" style={{ height: '90%', animationDelay: '0.2s' }} />
                           <div className="text-xs mt-1">Digital</div>
                           <div className="text-xs font-medium">$4.1</div>
                         </div>
                         <div className="flex flex-col items-center flex-1">
-                          <div className="w-full bg-indigo-500 rounded-t chart-bar" style={{ height: "60%", animationDelay: "0.4s" }}></div>
+                          <div className="w-full bg-indigo-500 rounded-t chart-bar" style={{ height: '60%', animationDelay: '0.4s' }} />
                           <div className="text-xs mt-1">Social</div>
                           <div className="text-xs font-medium">$2.7</div>
                         </div>
                         <div className="flex flex-col items-center flex-1">
-                          <div className="w-full bg-green-500 rounded-t chart-bar" style={{ height: "50%", animationDelay: "0.6s" }}></div>
+                          <div className="w-full bg-green-500 rounded-t chart-bar" style={{ height: '50%', animationDelay: '0.6s' }} />
                           <div className="text-xs mt-1">Radio</div>
                           <div className="text-xs font-medium">$2.3</div>
                         </div>
                         <div className="flex flex-col items-center flex-1">
-                          <div className="w-full bg-yellow-500 rounded-t chart-bar" style={{ height: "35%", animationDelay: "0.8s" }}></div>
+                          <div className="w-full bg-yellow-500 rounded-t chart-bar" style={{ height: '35%', animationDelay: '0.8s' }} />
                           <div className="text-xs mt-1">Print</div>
                           <div className="text-xs font-medium">$1.8</div>
                         </div>
@@ -742,14 +754,19 @@ const Landing = () => {
                       <div className="h-32 w-full bg-gray-50 rounded relative overflow-hidden">
                         {/* S-Curve */}
                         <svg width="100%" height="100%" viewBox="0 0 300 130" preserveAspectRatio="none">
-                          <path d="M0,130 C30,130 50,130 70,125 C100,115 120,80 150,50 C180,20 200,10 230,5 C260,0 280,0 300,0"
-                                fill="none" stroke="#6366F1" strokeWidth="3" className="graph-line" />
+                          <path
+                            d="M0,130 C30,130 50,130 70,125 C100,115 120,80 150,50 C180,20 200,10 230,5 C260,0 280,0 300,0"
+                            fill="none"
+                            stroke="#6366F1"
+                            strokeWidth="3"
+                            className="graph-line"
+                          />
 
                           {/* Saturation line */}
                           <line x1="0" y1="5" x2="300" y2="5" stroke="#EF4444" strokeWidth="1" strokeDasharray="4" />
 
                           {/* Current position marker */}
-                          <circle cx="180" cy="20" r="5" fill="#6366F1" className="dot" style={{ "--index": "0" }}></circle>
+                          <circle cx="180" cy="20" r="5" fill="#6366F1" className="dot" style={{ '--index': '0' }} />
                         </svg>
 
                         {/* Labels */}
@@ -787,57 +804,57 @@ const Landing = () => {
               <tbody>
                 <tr>
                   <td className="text-left font-medium">No-Code Interface</td>
-                  <td><i className="fas fa-check check-icon"></i></td>
-                  <td><i className="fas fa-times x-icon"></i></td>
-                  <td><i className="fas fa-check check-icon"></i></td>
+                  <td><i className="fas fa-check check-icon" /></td>
+                  <td><i className="fas fa-times x-icon" /></td>
+                  <td><i className="fas fa-check check-icon" /></td>
                 </tr>
                 <tr>
                   <td className="text-left font-medium">On-Device Processing</td>
-                  <td><i className="fas fa-check check-icon"></i></td>
-                  <td><i className="fas fa-times x-icon"></i></td>
-                  <td><i className="fas fa-times x-icon"></i></td>
+                  <td><i className="fas fa-check check-icon" /></td>
+                  <td><i className="fas fa-times x-icon" /></td>
+                  <td><i className="fas fa-times x-icon" /></td>
                 </tr>
                 <tr>
                   <td className="text-left font-medium">Variable Transformation</td>
-                  <td><i className="fas fa-check check-icon"></i></td>
-                  <td><i className="fas fa-check check-icon"></i></td>
-                  <td><i className="fas fa-times x-icon"></i></td>
+                  <td><i className="fas fa-check check-icon" /></td>
+                  <td><i className="fas fa-check check-icon" /></td>
+                  <td><i className="fas fa-times x-icon" /></td>
                 </tr>
                 <tr>
                   <td className="text-left font-medium">Advanced S-Curves</td>
-                  <td><i className="fas fa-check check-icon"></i></td>
-                  <td><i className="fas fa-check check-icon"></i></td>
-                  <td><i className="fas fa-times x-icon"></i></td>
+                  <td><i className="fas fa-check check-icon" /></td>
+                  <td><i className="fas fa-check check-icon" /></td>
+                  <td><i className="fas fa-times x-icon" /></td>
                 </tr>
                 <tr>
                   <td className="text-left font-medium">Diagnostic Tests</td>
-                  <td><i className="fas fa-check check-icon"></i></td>
-                  <td><i className="fas fa-check check-icon"></i></td>
-                  <td><i className="fas fa-times x-icon"></i></td>
+                  <td><i className="fas fa-check check-icon" /></td>
+                  <td><i className="fas fa-check check-icon" /></td>
+                  <td><i className="fas fa-times x-icon" /></td>
                 </tr>
                 <tr>
                   <td className="text-left font-medium">Decomposition Analysis</td>
-                  <td><i className="fas fa-check check-icon"></i></td>
-                  <td><i className="fas fa-check check-icon"></i></td>
-                  <td><i className="fas fa-times x-icon"></i></td>
+                  <td><i className="fas fa-check check-icon" /></td>
+                  <td><i className="fas fa-check check-icon" /></td>
+                  <td><i className="fas fa-times x-icon" /></td>
                 </tr>
                 <tr>
                   <td className="text-left font-medium">Data Privacy</td>
-                  <td><i className="fas fa-check check-icon"></i></td>
-                  <td><i className="fas fa-times x-icon"></i></td>
-                  <td><i className="fas fa-times x-icon"></i></td>
+                  <td><i className="fas fa-check check-icon" /></td>
+                  <td><i className="fas fa-times x-icon" /></td>
+                  <td><i className="fas fa-times x-icon" /></td>
                 </tr>
                 <tr>
                   <td className="text-left font-medium">Excel Integration</td>
-                  <td><i className="fas fa-check check-icon"></i></td>
-                  <td><i className="fas fa-check check-icon"></i></td>
-                  <td><i className="fas fa-check check-icon"></i></td>
+                  <td><i className="fas fa-check check-icon" /></td>
+                  <td><i className="fas fa-check check-icon" /></td>
+                  <td><i className="fas fa-check check-icon" /></td>
                 </tr>
                 <tr>
                   <td className="text-left font-medium">Statistical Expertise Required</td>
-                  <td><i className="fas fa-times check-icon"></i></td>
-                  <td><i className="fas fa-check x-icon"></i></td>
-                  <td><i className="fas fa-times check-icon"></i></td>
+                  <td><i className="fas fa-times check-icon" /></td>
+                  <td><i className="fas fa-check x-icon" /></td>
+                  <td><i className="fas fa-times check-icon" /></td>
                 </tr>
                 <tr>
                   <td className="text-left font-medium">Implementation Time</td>
@@ -875,11 +892,11 @@ const Landing = () => {
                   </div>
                   <p className="text-gray-600 mb-4">"Econometrica has transformed how we approach marketing measurement. We went from spending weeks on model development to having insights in days. The interface is intuitive enough for our marketing team while providing the statistical rigor our data scientists expect."</p>
                   <div className="flex text-yellow-400">
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
+                    <i className="fas fa-star" />
+                    <i className="fas fa-star" />
+                    <i className="fas fa-star" />
+                    <i className="fas fa-star" />
+                    <i className="fas fa-star" />
                   </div>
                 </div>
               </div>
@@ -898,225 +915,225 @@ const Landing = () => {
                   </div>
                   <p className="text-gray-600 mb-4">"The privacy features sold us immediately. Our legal team was concerned about sharing marketing data with external vendors, but with Econometrica, all processing happens locally. The capabilities rival what we were getting from consultants at a fraction of the cost."</p>
                   <div className="flex text-yellow-400">
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star-half-alt"></i>
+                    <i className="fas fa-star" />
+                    <i className="fas fa-star" />
+                    <i className="fas fa-star" />
+                    <i className="fas fa-star" />
+                    <i className="fas fa-star-half-alt" />
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="flex justify-center mt-8 space-x-2">
-              <button className="h-3 w-3 rounded-full bg-indigo-600"></button>
-              <button className="h-3 w-3 rounded-full bg-gray-300"></button>
-              <button className="h-3 w-3 rounded-full bg-gray-300"></button>
+              <button className="h-3 w-3 rounded-full bg-indigo-600" />
+              <button className="h-3 w-3 rounded-full bg-gray-300" />
+              <button className="h-3 w-3 rounded-full bg-gray-300" />
             </div>
           </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-<section id="pricing" className="py-20 bg-white">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div className="text-center mb-16">
-      <h2 className="text-4xl font-bold mb-3 text-gradient">Subscription Plans</h2>
-      <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
-        Choose the perfect plan for your marketing analytics needs.
-        All plans include unlimited models and our full suite of tools.
-      </p>
-    </div>
+      <section id="pricing" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-3 text-gradient">Subscription Plans</h2>
+            <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
+              Choose the perfect plan for your marketing analytics needs.
+              All plans include unlimited models and our full suite of tools.
+            </p>
+          </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-      {/* Monthly Plan */}
-      <div className="bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-        <div className="p-8">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-2xl font-bold text-gray-900">Monthly</h3>
-            <span className="px-3 py-1 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded-full">
-              Flexible
-            </span>
-          </div>
-          <div className="mb-6">
-            <span className="text-5xl font-bold">$1,500</span>
-            <span className="text-xl text-gray-500">/mo</span>
-            <p className="text-gray-500 mt-2">Billed monthly</p>
-          </div>
-          <ul className="mb-8 space-y-4">
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Unlimited models</span>
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Complete variable transformations</span>
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Full analytics suite</span>
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Email support</span>
-            </li>
-          </ul>
-          <a
-            href="/sign-up?plan=monthly"
-            className="block w-full py-3 px-6 text-center text-white font-semibold rounded-lg shadow-md bg-indigo-600 hover:bg-indigo-700 transition-colors"
-          >
-            Get Started
-          </a>
-        </div>
-      </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Monthly Plan */}
+            <div className="bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+              <div className="p-8">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-2xl font-bold text-gray-900">Monthly</h3>
+                  <span className="px-3 py-1 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded-full">
+                    Flexible
+                  </span>
+                </div>
+                <div className="mb-6">
+                  <span className="text-5xl font-bold">$1,500</span>
+                  <span className="text-xl text-gray-500">/mo</span>
+                  <p className="text-gray-500 mt-2">Billed monthly</p>
+                </div>
+                <ul className="mb-8 space-y-4">
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Unlimited models</span>
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Complete variable transformations</span>
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Full analytics suite</span>
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Email support</span>
+                  </li>
+                </ul>
+                <a
+                  href="/sign-up?plan=monthly"
+                  className="block w-full py-3 px-6 text-center text-white font-semibold rounded-lg shadow-md bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                >
+                  Get Started
+                </a>
+              </div>
+            </div>
 
-      {/* Quarterly Plan */}
-      <div className="bg-white rounded-2xl overflow-hidden border-2 border-indigo-500 shadow-xl transform scale-105 relative z-10 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-        <div className="absolute top-0 left-0 right-0 overflow-hidden">
-          <div className="bg-indigo-600 text-white py-1 text-center transform rotate-0">
-            <span className="text-xs uppercase tracking-wide font-semibold">Most Popular</span>
-          </div>
-        </div>
-        <div className="p-8 pt-12">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-2xl font-bold text-gray-900">Quarterly</h3>
-            <span className="px-3 py-1 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded-full">
-              Save 17%
-            </span>
-          </div>
-          <div className="mb-6">
-            <span className="text-5xl font-bold">$1,250</span>
-            <span className="text-xl text-gray-500">/mo</span>
-            <p className="text-gray-500 mt-2">$3,750 billed every 3 months</p>
-          </div>
-          <ul className="mb-8 space-y-4">
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Unlimited models</span>
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Complete variable transformations</span>
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Full analytics suite</span>
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Priority support</span>
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Advanced customization</span>
-            </li>
-          </ul>
-          <a
-            href="/sign-up?plan=quarterly"
-            className="block w-full py-3 px-6 text-center text-white font-semibold rounded-lg shadow-md bg-indigo-600 hover:bg-indigo-700 transition-colors"
-          >
-            Get Started
-          </a>
-        </div>
-      </div>
+            {/* Quarterly Plan */}
+            <div className="bg-white rounded-2xl overflow-hidden border-2 border-indigo-500 shadow-xl transform scale-105 relative z-10 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+              <div className="absolute top-0 left-0 right-0 overflow-hidden">
+                <div className="bg-indigo-600 text-white py-1 text-center transform rotate-0">
+                  <span className="text-xs uppercase tracking-wide font-semibold">Most Popular</span>
+                </div>
+              </div>
+              <div className="p-8 pt-12">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-2xl font-bold text-gray-900">Quarterly</h3>
+                  <span className="px-3 py-1 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded-full">
+                    Save 17%
+                  </span>
+                </div>
+                <div className="mb-6">
+                  <span className="text-5xl font-bold">$1,250</span>
+                  <span className="text-xl text-gray-500">/mo</span>
+                  <p className="text-gray-500 mt-2">$3,750 billed every 3 months</p>
+                </div>
+                <ul className="mb-8 space-y-4">
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Unlimited models</span>
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Complete variable transformations</span>
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Full analytics suite</span>
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Priority support</span>
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Advanced customization</span>
+                  </li>
+                </ul>
+                <a
+                  href="/sign-up?plan=quarterly"
+                  className="block w-full py-3 px-6 text-center text-white font-semibold rounded-lg shadow-md bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                >
+                  Get Started
+                </a>
+              </div>
+            </div>
 
-      {/* Semi-Annual Plan */}
-      <div className="bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-        <div className="p-8">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-2xl font-bold text-gray-900">Semi-Annual</h3>
-            <span className="px-3 py-1 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded-full">
-              Save 33%
-            </span>
+            {/* Semi-Annual Plan */}
+            <div className="bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+              <div className="p-8">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-2xl font-bold text-gray-900">Semi-Annual</h3>
+                  <span className="px-3 py-1 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded-full">
+                    Save 33%
+                  </span>
+                </div>
+                <div className="mb-6">
+                  <span className="text-5xl font-bold">$1,000</span>
+                  <span className="text-xl text-gray-500">/mo</span>
+                  <p className="text-gray-500 mt-2">$6,000 billed every 6 months</p>
+                </div>
+                <ul className="mb-8 space-y-4">
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Unlimited models</span>
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Complete variable transformations</span>
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Full analytics suite</span>
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Dedicated support</span>
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Custom reporting</span>
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Implementation assistance</span>
+                  </li>
+                </ul>
+                <a
+                  href="/sign-up?plan=semiannual"
+                  className="block w-full py-3 px-6 text-center text-white font-semibold rounded-lg shadow-md bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                >
+                  Get Started
+                </a>
+              </div>
+            </div>
           </div>
-          <div className="mb-6">
-            <span className="text-5xl font-bold">$1,000</span>
-            <span className="text-xl text-gray-500">/mo</span>
-            <p className="text-gray-500 mt-2">$6,000 billed every 6 months</p>
-          </div>
-          <ul className="mb-8 space-y-4">
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Unlimited models</span>
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Complete variable transformations</span>
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Full analytics suite</span>
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Dedicated support</span>
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Custom reporting</span>
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Implementation assistance</span>
-            </li>
-          </ul>
-          <a
-            href="/sign-up?plan=semiannual"
-            className="block w-full py-3 px-6 text-center text-white font-semibold rounded-lg shadow-md bg-indigo-600 hover:bg-indigo-700 transition-colors"
-          >
-            Get Started
-          </a>
-        </div>
-      </div>
-    </div>
 
-    <div className="mt-16 text-center bg-gray-50 p-8 rounded-xl max-w-4xl mx-auto">
-      <h3 className="text-2xl font-bold mb-4">Enterprise Solutions</h3>
-      <p className="text-gray-600 mb-6">
-        Need a custom solution for your organization? Contact us for tailored pricing and features.
-      </p>
-      <a
-        href="mailto:sales@metis-mmm.com"
-        className="inline-flex items-center px-6 py-3 border border-indigo-600 text-indigo-600 font-medium rounded-lg hover:bg-indigo-50 transition-colors"
-      >
-        <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-        </svg>
-        Contact Sales
-      </a>
-    </div>
-  </div>
-</section>
+          <div className="mt-16 text-center bg-gray-50 p-8 rounded-xl max-w-4xl mx-auto">
+            <h3 className="text-2xl font-bold mb-4">Enterprise Solutions</h3>
+            <p className="text-gray-600 mb-6">
+              Need a custom solution for your organization? Contact us for tailored pricing and features.
+            </p>
+            <a
+              href="mailto:sales@metis-mmm.com"
+              className="inline-flex items-center px-6 py-3 border border-indigo-600 text-indigo-600 font-medium rounded-lg hover:bg-indigo-50 transition-colors"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              Contact Sales
+            </a>
+          </div>
+        </div>
+      </section>
 
       {/* CTA Section */}
       <section id="contact" className="py-16 gradient-bg text-white">
@@ -1139,7 +1156,7 @@ const Landing = () => {
                 <input className="appearance-none border border-gray-300 rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500" id="company" type="text" placeholder="Your Company" />
               </div>
               <div>
-              <button type="button" onClick={handleGetStarted} className="btn-primary w-full py-3" style={{ backgroundColor: "var(--primary-color)" }}>
+                <button type="button" onClick={handleGetStarted} className="btn-primary w-full py-3" style={{ backgroundColor: 'var(--primary-color)' }}>
                   Start Free Trial
                 </button>
               </div>
@@ -1190,16 +1207,16 @@ const Landing = () => {
             </div>
             <div className="flex space-x-4 mt-4 md:mt-0">
               <a href="#" className="text-gray-400 hover:text-white">
-                <i className="fab fa-twitter"></i>
+                <i className="fab fa-twitter" />
               </a>
               <a href="#" className="text-gray-400 hover:text-white">
-                <i className="fab fa-linkedin"></i>
+                <i className="fab fa-linkedin" />
               </a>
               <a href="#" className="text-gray-400 hover:text-white">
-                <i className="fab fa-github"></i>
+                <i className="fab fa-github" />
               </a>
               <a href="#" className="text-gray-400 hover:text-white">
-                <i className="fab fa-youtube"></i>
+                <i className="fab fa-youtube" />
               </a>
             </div>
           </div>

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { useStripe } from '@stripe/react-stripe-js';
+import { FiUser, FiLock, FiCreditCard } from 'react-icons/fi';
+import { BsShieldLock } from 'react-icons/bs';
 import apiService from '../services/api';
 import { Header } from '../components';
 import { useStateContext } from '../contexts/ContextProvider';
-import { FiUser, FiLock, FiCreditCard } from 'react-icons/fi';
-import { BsShieldLock } from 'react-icons/bs';
 import avatar from '../data/avatar.jpg';
 
 const AccountSettings = () => {
@@ -42,7 +42,7 @@ const AccountSettings = () => {
 
       // Redirect to Stripe checkout
       const result = await stripe.redirectToCheckout({
-        sessionId: response.id
+        sessionId: response.id,
       });
 
       if (result.error) {
@@ -77,8 +77,8 @@ const AccountSettings = () => {
         lastName,
         unsafeMetadata: {
           ...user.unsafeMetadata,
-          companyName
-        }
+          companyName,
+        },
       });
 
       setSaveSuccess(true);
@@ -115,7 +115,7 @@ const AccountSettings = () => {
       <div className="m-2 md:m-10 mt-24 p-2 md:p-10 bg-white dark:bg-secondary-dark-bg rounded-3xl">
         <Header category="Account" title="Account Settings" />
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" style={{ borderColor: currentColor }}></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" style={{ borderColor: currentColor }} />
           <p className="ml-2">Loading account settings...</p>
         </div>
       </div>
@@ -407,21 +407,21 @@ const AccountSettings = () => {
                 <div className="mt-4">
                   <div className="flex items-center mb-2">
                     <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                     </svg>
                     <span className="text-sm dark:text-gray-300">Up to 3 models</span>
                   </div>
 
                   <div className="flex items-center mb-2">
                     <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                     </svg>
                     <span className="text-sm dark:text-gray-300">Basic variable transformations</span>
                   </div>
 
                   <div className="flex items-center">
                     <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                     </svg>
                     <span className="text-sm dark:text-gray-300">Excel export</span>
                   </div>
@@ -445,19 +445,19 @@ const AccountSettings = () => {
                   <ul className="mt-4 space-y-2">
                     <li className="flex items-start">
                       <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-sm dark:text-gray-300">Up to 3 models</span>
                     </li>
                     <li className="flex items-start">
                       <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-sm dark:text-gray-300">Basic variable transformations</span>
                     </li>
                     <li className="flex items-start">
                       <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-sm dark:text-gray-300">Excel export</span>
                     </li>
@@ -492,25 +492,25 @@ const AccountSettings = () => {
                   <ul className="mt-4 space-y-2">
                     <li className="flex items-start">
                       <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-sm dark:text-gray-300">Unlimited models</span>
                     </li>
                     <li className="flex items-start">
                       <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-sm dark:text-gray-300">Advanced transformations</span>
                     </li>
                     <li className="flex items-start">
                       <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-sm dark:text-gray-300">Advanced curve fitting</span>
                     </li>
                     <li className="flex items-start">
                       <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-sm dark:text-gray-300">Advanced diagnostic tests</span>
                     </li>
@@ -539,25 +539,25 @@ const AccountSettings = () => {
                   <ul className="mt-4 space-y-2">
                     <li className="flex items-start">
                       <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-sm dark:text-gray-300">Unlimited models</span>
                     </li>
                     <li className="flex items-start">
                       <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-sm dark:text-gray-300">All features included</span>
                     </li>
                     <li className="flex items-start">
                       <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-sm dark:text-gray-300">Multi-user access</span>
                     </li>
                     <li className="flex items-start">
                       <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-sm dark:text-gray-300">Priority support</span>
                     </li>

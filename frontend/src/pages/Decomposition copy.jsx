@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  DropDownListComponent
+  DropDownListComponent,
 } from '@syncfusion/ej2-react-dropdowns';
 import {
-  ButtonComponent
+  ButtonComponent,
 } from '@syncfusion/ej2-react-buttons';
 import {
   ChartComponent,
@@ -19,13 +19,13 @@ import {
   Tooltip,
   DataLabel,
   DateTime,
-  ColumnSeries
+  ColumnSeries,
 } from '@syncfusion/ej2-react-charts';
+import { FiBarChart2, FiActivity, FiDownload, FiFilter } from 'react-icons/fi';
 import { Header } from '../components';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { useStateContext } from '../contexts/ContextProvider';
 import apiService from '../services/api';
-import { FiBarChart2, FiActivity, FiDownload, FiFilter } from 'react-icons/fi';
 import '../chartStyles.css';
 
 const Decomposition = () => {
@@ -94,7 +94,7 @@ const Decomposition = () => {
         setModelDetails({
           name: modelName,
           variables: response.variables,
-          kpi: response.variables.find(v => v.type === 'KPI')?.name || ''
+          kpi: response.variables.find((v) => v.type === 'KPI')?.name || '',
         });
       } else {
         setError('Failed to load model details');
@@ -222,12 +222,12 @@ const Decomposition = () => {
       const dataPoint = { x: new Date(date) };
 
       // Add each variable's contribution
-      variables.forEach(variable => {
+      variables.forEach((variable) => {
         dataPoint[variable] = contributions[variable][index];
       });
 
       // Add the total contribution
-      dataPoint['total'] = total[index];
+      dataPoint.total = total[index];
 
       return dataPoint;
     });
@@ -244,7 +244,7 @@ const Decomposition = () => {
     return dates.map((date, index) => ({
       x: new Date(date),
       actual: actual[index],
-      predicted: predicted[index]
+      predicted: predicted[index],
     }));
   };
 
@@ -254,16 +254,14 @@ const Decomposition = () => {
     const contributions = data.contributions || {};
 
     // Get unique contribution groups
-    const groups = Object.keys(contributions).filter(group =>
-      group !== 'actual' && group !== 'predicted'
-    );
+    const groups = Object.keys(contributions).filter((group) => group !== 'actual' && group !== 'predicted');
 
     // Create stacked data
     const stackedData = dates.map((date, index) => {
       const dataPoint = { x: new Date(date) };
 
       // Add each group's contribution
-      groups.forEach(group => {
+      groups.forEach((group) => {
         dataPoint[group] = contributions[group][index];
       });
 
@@ -277,25 +275,25 @@ const Decomposition = () => {
   const getGroupColor = (group) => {
     // Standard color mapping for common groups
     const colorMap = {
-      'Base': '#b3b3b3',
-      'Pricing': '#f44336',
-      'Price': '#f44336',
-      'Promotions': '#673ab7',
-      'Promotion': '#673ab7',
-      'Promo': '#673ab7',
-      'Offer': '#009688',
-      'Offers': '#009688',
-      'Media': '#03a9f4',
-      'Competition': '#000000',
-      'Competitor': '#000000',
-      'Weather': '#b97407',
-      'Seasonality': '#ffeb3b',
-      'Distribution': '#f48fb1',
-      'Other': '#666666'
+      Base: '#b3b3b3',
+      Pricing: '#f44336',
+      Price: '#f44336',
+      Promotions: '#673ab7',
+      Promotion: '#673ab7',
+      Promo: '#673ab7',
+      Offer: '#009688',
+      Offers: '#009688',
+      Media: '#03a9f4',
+      Competition: '#000000',
+      Competitor: '#000000',
+      Weather: '#b97407',
+      Seasonality: '#ffeb3b',
+      Distribution: '#f48fb1',
+      Other: '#666666',
     };
 
     // Return mapped color or fallback color
-    return colorMap[group] || '#' + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, '0');
+    return colorMap[group] || `#${((Math.random() * 0xffffff) << 0).toString(16).padStart(6, '0')}`;
   };
 
   // Get color for a variable within a group
@@ -315,7 +313,7 @@ const Decomposition = () => {
       '#f59541', // Orange
       '#f55641', // Red
       '#f541b9', // Pink
-      '#9741f5'  // Purple
+      '#9741f5', // Purple
     ];
 
     return colorSet[index % colorSet.length];
@@ -323,41 +321,41 @@ const Decomposition = () => {
 
   // NEW CODE FOR COLOURS
   // Add a useEffect to load group colors when the model changes
-useEffect(() => {
-  if (selectedModel) {
-    fetchGroupColors(selectedModel);
-  }
-}, [selectedModel]);
-
-// Add state for group colors
-const [groupColors, setGroupColors] = useState({});
-
-// Add function to fetch group colors
-const fetchGroupColors = async (modelName) => {
-  try {
-    const response = await apiService.getGroupColors(modelName);
-    if (response.success) {
-      setGroupColors(response.colors || {});
+  useEffect(() => {
+    if (selectedModel) {
+      fetchGroupColors(selectedModel);
     }
-  } catch (error) {
-    console.error('Error fetching group colors:', error);
-  }
-};
+  }, [selectedModel]);
 
-const getDefaultGroupColor = (group) => {
-  const defaultColors = {
-    'Base': '#CCCCCC',      // Gray
-    'Media': '#4682B4',     // Steel Blue
-    'Price': '#FF0000',     // Red
-    'Promotion': '#FFA500', // Orange
-    'Seasonality': '#9370DB', // Medium Purple
-    'Weather': '#8B4513',   // Brown
-    'Competition': '#000000', // Black
-    'Other': '#808080'      // Dark Gray
+  // Add state for group colors
+  const [groupColors, setGroupColors] = useState({});
+
+  // Add function to fetch group colors
+  const fetchGroupColors = async (modelName) => {
+    try {
+      const response = await apiService.getGroupColors(modelName);
+      if (response.success) {
+        setGroupColors(response.colors || {});
+      }
+    } catch (error) {
+      console.error('Error fetching group colors:', error);
+    }
   };
 
-  return defaultColors[group] || '#' + Math.floor(Math.random()*16777215).toString(16);
-};
+  const getDefaultGroupColor = (group) => {
+    const defaultColors = {
+      Base: '#CCCCCC', // Gray
+      Media: '#4682B4', // Steel Blue
+      Price: '#FF0000', // Red
+      Promotion: '#FFA500', // Orange
+      Seasonality: '#9370DB', // Medium Purple
+      Weather: '#8B4513', // Brown
+      Competition: '#000000', // Black
+      Other: '#808080', // Dark Gray
+    };
+
+    return defaultColors[group] || `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+  };
 
   // Download decomposition data
   const handleDownloadData = () => {
@@ -371,10 +369,10 @@ const getDefaultGroupColor = (group) => {
       const contributions = decompositionData.contributions || {};
 
       // Create CSV header
-      let csv = ['Date,Actual,Predicted'];
+      const csv = ['Date,Actual,Predicted'];
 
       // Add each contribution group
-      Object.keys(contributions).forEach(group => {
+      Object.keys(contributions).forEach((group) => {
         if (group !== 'actual' && group !== 'predicted') {
           csv[0] += `,${group}`;
         }
@@ -385,7 +383,7 @@ const getDefaultGroupColor = (group) => {
         let row = `${date},${actual[index]},${predicted[index]}`;
 
         // Add each contribution group's value
-        Object.keys(contributions).forEach(group => {
+        Object.keys(contributions).forEach((group) => {
           if (group !== 'actual' && group !== 'predicted') {
             row += `,${contributions[group][index]}`;
           }
@@ -405,7 +403,6 @@ const getDefaultGroupColor = (group) => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
     } catch (error) {
       console.error('Error downloading data:', error);
       setError('Error downloading data');
@@ -424,10 +421,10 @@ const getDefaultGroupColor = (group) => {
       const total = groupDecompositionData.total || [];
 
       // Create CSV header
-      let csv = ['Date'];
+      const csv = ['Date'];
 
       // Add each variable
-      variables.forEach(variable => {
+      variables.forEach((variable) => {
         csv[0] += `,${variable}`;
       });
 
@@ -439,7 +436,7 @@ const getDefaultGroupColor = (group) => {
         let row = `${date}`;
 
         // Add each variable's value
-        variables.forEach(variable => {
+        variables.forEach((variable) => {
           row += `,${contributions[variable][index]}`;
         });
 
@@ -460,7 +457,6 @@ const getDefaultGroupColor = (group) => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
     } catch (error) {
       console.error('Error downloading group data:', error);
       setGroupError('Error downloading group data');
@@ -482,7 +478,7 @@ const getDefaultGroupColor = (group) => {
             labelFormat: 'MMM yyyy',
             majorGridLines: { width: 0 },
             intervalType: 'Months',
-            edgeLabelPlacement: 'Shift'
+            edgeLabelPlacement: 'Shift',
           }}
           primaryYAxis={{
             labelFormat: '{value}',
@@ -491,7 +487,7 @@ const getDefaultGroupColor = (group) => {
             majorGridLines: { width: 1 },
             minorGridLines: { width: 0 },
             lineStyle: { width: 0 },
-            majorTickLines: { width: 0 }
+            majorTickLines: { width: 0 },
           }}
           tooltip={{ enable: true }}
           legendSettings={{ visible: true, position: 'Top' }}
@@ -509,7 +505,7 @@ const getDefaultGroupColor = (group) => {
               type="Line"
               width={2}
               marker={{ visible: true }}
-              legendShape='Circle'
+              legendShape="Circle"
               fill="#000000"
             />
             <SeriesDirective
@@ -520,7 +516,7 @@ const getDefaultGroupColor = (group) => {
               type="Line"
               width={2}
               marker={{ visible: true }}
-              legendShape='Circle'
+              legendShape="Circle"
               fill="#FF0000"
               dashArray="5,5"
             />
@@ -547,7 +543,7 @@ const getDefaultGroupColor = (group) => {
             labelFormat: 'MMM yyyy',
             majorGridLines: { width: 0 },
             intervalType: 'Months',
-            edgeLabelPlacement: 'Shift'
+            edgeLabelPlacement: 'Shift',
           }}
           primaryYAxis={{
             labelFormat: '{value}',
@@ -556,7 +552,7 @@ const getDefaultGroupColor = (group) => {
             majorGridLines: { width: 1 },
             minorGridLines: { width: 0 },
             lineStyle: { width: 0 },
-            majorTickLines: { width: 0 }
+            majorTickLines: { width: 0 },
           }}
           tooltip={{ enable: true }}
           legendSettings={{ visible: true, position: 'Bottom' }}
@@ -566,22 +562,22 @@ const getDefaultGroupColor = (group) => {
         >
           <Inject services={[StackingColumnSeries, DateTime, Legend, Tooltip, DataLabel]} />
           <SeriesCollectionDirective>
-  {contributionGroups.map((group, index) => (
-    <SeriesDirective
-      key={index}
-      dataSource={stackedData}
-      xName="x"
-      yName={group}
-      name={group}
-      type="StackingColumn"
-      legendShape='Rectangle'
-      fill={groupColors[group] || getDefaultGroupColor(group)} // Use custom or default color
-      opacity={1}
-      border={{ width: 0.5, color: '#ffffff' }}
-      cornerRadius={{ topLeft: 0, topRight: 0 }}
-    />
-  ))}
-</SeriesCollectionDirective>
+            {contributionGroups.map((group, index) => (
+              <SeriesDirective
+                key={index}
+                dataSource={stackedData}
+                xName="x"
+                yName={group}
+                name={group}
+                type="StackingColumn"
+                legendShape="Rectangle"
+                fill={groupColors[group] || getDefaultGroupColor(group)} // Use custom or default color
+                opacity={1}
+                border={{ width: 0.5, color: '#ffffff' }}
+                cornerRadius={{ topLeft: 0, topRight: 0 }}
+              />
+            ))}
+          </SeriesCollectionDirective>
         </ChartComponent>
       </div>
     );
@@ -604,7 +600,7 @@ const getDefaultGroupColor = (group) => {
             labelFormat: 'MMM yyyy',
             majorGridLines: { width: 0 },
             intervalType: 'Months',
-            edgeLabelPlacement: 'Shift'
+            edgeLabelPlacement: 'Shift',
           }}
           primaryYAxis={{
             labelFormat: '{value}',
@@ -613,7 +609,7 @@ const getDefaultGroupColor = (group) => {
             majorGridLines: { width: 1 },
             minorGridLines: { width: 0 },
             lineStyle: { width: 0 },
-            majorTickLines: { width: 0 }
+            majorTickLines: { width: 0 },
           }}
           tooltip={{ enable: true }}
           legendSettings={{ visible: true, position: 'Bottom' }}
@@ -632,7 +628,7 @@ const getDefaultGroupColor = (group) => {
                 yName={variable}
                 name={variable}
                 type="StackingColumn"
-                legendShape='Rectangle'
+                legendShape="Rectangle"
                 fill={getVariableColor(variable, index)}
                 opacity={0.8}
                 border={{ width: 0.5, color: '#ffffff' }}
@@ -649,7 +645,7 @@ const getDefaultGroupColor = (group) => {
               type="Line"
               width={2}
               marker={{ visible: true }}
-              legendShape='Circle'
+              legendShape="Circle"
               fill="#000000"
             />
           </SeriesCollectionDirective>
@@ -675,7 +671,7 @@ const getDefaultGroupColor = (group) => {
                 </label>
                 <DropDownListComponent
                   id="model-select"
-                  dataSource={models.map(m => ({ text: m.name, value: m.name }))}
+                  dataSource={models.map((m) => ({ text: m.name, value: m.name }))}
                   fields={{ text: 'text', value: 'value' }}
                   value={selectedModel}
                   change={handleModelChange}
@@ -701,7 +697,7 @@ const getDefaultGroupColor = (group) => {
                 style={{
                   backgroundColor: currentColor,
                   borderColor: currentColor,
-                  width: '100%'
+                  width: '100%',
                 }}
                 onClick={runDecomposition}
                 disabled={!selectedModel || loading}
@@ -717,7 +713,7 @@ const getDefaultGroupColor = (group) => {
                   style={{
                     borderColor: currentColor,
                     color: currentColor,
-                    width: '100%'
+                    width: '100%',
                   }}
                   onClick={handleDownloadData}
                   disabled={loading}
@@ -741,7 +737,7 @@ const getDefaultGroupColor = (group) => {
                   </label>
                   <DropDownListComponent
                     id="group-select"
-                    dataSource={contributionGroups.map(g => ({ text: g, value: g }))}
+                    dataSource={contributionGroups.map((g) => ({ text: g, value: g }))}
                     fields={{ text: 'text', value: 'value' }}
                     value={selectedGroup}
                     change={handleGroupChange}
@@ -756,7 +752,7 @@ const getDefaultGroupColor = (group) => {
                     style={{
                       backgroundColor: currentColor,
                       borderColor: currentColor,
-                      width: '100%'
+                      width: '100%',
                     }}
                     onClick={runGroupDecomposition}
                     disabled={!selectedGroup || groupLoading}
@@ -775,7 +771,7 @@ const getDefaultGroupColor = (group) => {
                       style={{
                         borderColor: currentColor,
                         color: currentColor,
-                        width: '100%'
+                        width: '100%',
                       }}
                       onClick={handleDownloadGroupData}
                       disabled={groupLoading}
@@ -798,7 +794,7 @@ const getDefaultGroupColor = (group) => {
                 <div
                   className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"
                   style={{ borderColor: currentColor }}
-                ></div>
+                />
                 <p className="ml-2">Processing decomposition...</p>
               </div>
             ) : error ? (
@@ -826,7 +822,7 @@ const getDefaultGroupColor = (group) => {
                     <div
                       className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"
                       style={{ borderColor: currentColor }}
-                    ></div>
+                    />
                     <p className="ml-2">Processing group decomposition...</p>
                   </div>
                 ) : groupError ? (

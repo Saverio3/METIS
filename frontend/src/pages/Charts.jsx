@@ -20,13 +20,13 @@ import {
   ScrollBar } from '@syncfusion/ej2-react-charts';
 import { ButtonComponent, CheckBoxComponent } from '@syncfusion/ej2-react-buttons';
 import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
+import { FiBarChart2, FiPieChart, FiTrendingUp, FiScatterPlot, FiGrid } from 'react-icons/fi';
+import { MdStackedBarChart, MdOutlineMultilineChart } from 'react-icons/md';
+import { AiOutlineDotChart, AiOutlineAreaChart } from 'react-icons/ai';
 import { Header } from '../components';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { useStateContext } from '../contexts/ContextProvider';
 import apiService from '../services/api';
-import { FiBarChart2, FiPieChart, FiTrendingUp, FiScatterPlot, FiGrid } from 'react-icons/fi';
-import { MdStackedBarChart, MdOutlineMultilineChart } from 'react-icons/md';
-import { AiOutlineDotChart, AiOutlineAreaChart } from 'react-icons/ai';
 import '../chartStyles.css';
 
 // Import the chart data transformation utilities
@@ -35,7 +35,7 @@ import {
   transformForBarChart,
   transformForAreaChart,
   transformForStackedChart,
-  transformForScatterChart
+  transformForScatterChart,
 } from '../utils/DataTransform';
 
 const ChartTypes = {
@@ -43,7 +43,7 @@ const ChartTypes = {
   SCATTER: 'scatter',
   COLUMN: 'column',
   CORRELATION: 'correlation',
-  STACKED: 'stacked'
+  STACKED: 'stacked',
 };
 
 const Charts = () => {
@@ -71,7 +71,7 @@ const Charts = () => {
   // Chart color palette
   const chartColorPalette = [
     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
   ];
 
   // Add a resize effect to update chart dimensions when the container resizes
@@ -119,11 +119,9 @@ const Charts = () => {
         setVariables(response.variables);
 
         // Find a likely KPI variable
-        const kpi = response.variables.find(v =>
-          v.name.toLowerCase().includes('kpi') ||
-          v.name.toLowerCase().includes('sales') ||
-          v.name.toLowerCase().includes('revenue')
-        );
+        const kpi = response.variables.find((v) => v.name.toLowerCase().includes('kpi')
+          || v.name.toLowerCase().includes('sales')
+          || v.name.toLowerCase().includes('revenue'));
         if (kpi) {
           setKpiVariable(kpi.name);
         } else if (response.variables.length > 0) {
@@ -145,25 +143,22 @@ const Charts = () => {
   }, []);
 
   // Filter variables based on search term
-  const filteredVariables = variables.filter(v =>
-    v.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredVariables = variables.filter((v) => v.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   // Handle checkbox selection
   const handleCheckboxClick = (variableName) => {
-    setSelectedVariables(prev => {
+    setSelectedVariables((prev) => {
       if (prev.includes(variableName)) {
-        return prev.filter(v => v !== variableName);
-      } else {
-        return [...prev, variableName];
+        return prev.filter((v) => v !== variableName);
       }
+      return [...prev, variableName];
     });
   };
 
   // Handle select all checkbox
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedVariables(filteredVariables.map(v => v.name));
+      setSelectedVariables(filteredVariables.map((v) => v.name));
     } else {
       setSelectedVariables([]);
     }
@@ -179,7 +174,7 @@ const Charts = () => {
     setLoading(true);
     try {
       // Get variables to chart
-      let variablesToChart = [...selectedVariables];
+      const variablesToChart = [...selectedVariables];
 
       // Add KPI if option is selected
       if (includeKPI && kpiVariable && !variablesToChart.includes(kpiVariable)) {
@@ -189,14 +184,14 @@ const Charts = () => {
       console.log('Sending to API:', {
         modelName: selectedModel,
         variables: variablesToChart,
-        useTransformed: showTransformed
+        useTransformed: showTransformed,
       });
 
       // Call the API with the transformed parameter
       const response = await apiService.chartVariables(
         selectedModel,
         variablesToChart,
-        showTransformed
+        showTransformed,
       );
 
       if (response.success) {
@@ -210,12 +205,12 @@ const Charts = () => {
         }
 
         // Process the chart data based on transformation flag
-        let processedChartData = response.chartData;
+        const processedChartData = response.chartData;
 
         // Update chart title with transformation info if needed
-        let titleSuffix = "";
+        let titleSuffix = '';
         if (showTransformed) {
-          titleSuffix = " (Transformed)";
+          titleSuffix = ' (Transformed)';
         }
 
         // Set chart title based on the number of variables
@@ -231,12 +226,12 @@ const Charts = () => {
         setChartData(processedChartData);
       } else {
         console.error('Failed to fetch chart data:', response.error);
-        alert('Failed to load chart data: ' + (response.error || 'Unknown error'));
+        alert(`Failed to load chart data: ${response.error || 'Unknown error'}`);
       }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching chart data:', error);
-      alert('Error loading chart data: ' + (error.message || 'Unknown error'));
+      alert(`Error loading chart data: ${error.message || 'Unknown error'}`);
       setLoading(false);
     }
   };
@@ -266,16 +261,16 @@ const Charts = () => {
       const correlationMatrix = {};
 
       // Initialize the matrix with self-correlations
-      selectedVariables.forEach(variable1 => {
+      selectedVariables.forEach((variable1) => {
         correlationMatrix[variable1] = {};
-        selectedVariables.forEach(variable2 => {
+        selectedVariables.forEach((variable2) => {
           correlationMatrix[variable1][variable2] = variable1 === variable2 ? 1 : null;
         });
       });
 
       // Get the data series for each variable
       const seriesMap = {};
-      response.chartData.forEach(series => {
+      response.chartData.forEach((series) => {
         if (series && series.name) {
           seriesMap[series.name] = series.data || [];
         }
@@ -303,21 +298,21 @@ const Charts = () => {
           const dateMap = {};
 
           // Create a map of dates to values for the first variable
-          data1.forEach(point => {
+          data1.forEach((point) => {
             if (point && point.x) {
-              const dateStr = typeof point.x === 'string' ? point.x :
-                             point.x instanceof Date ? point.x.toISOString() :
-                             String(point.x);
+              const dateStr = typeof point.x === 'string' ? point.x
+                : point.x instanceof Date ? point.x.toISOString()
+                  : String(point.x);
               dateMap[dateStr] = point.y;
             }
           });
 
           // Find matching points for the second variable
-          data2.forEach(point => {
+          data2.forEach((point) => {
             if (point && point.x) {
-              const dateStr = typeof point.x === 'string' ? point.x :
-                             point.x instanceof Date ? point.x.toISOString() :
-                             String(point.x);
+              const dateStr = typeof point.x === 'string' ? point.x
+                : point.x instanceof Date ? point.x.toISOString()
+                  : String(point.x);
               if (dateMap[dateStr] !== undefined) {
                 matchedPairs.push([dateMap[dateStr], point.y]);
               }
@@ -326,7 +321,8 @@ const Charts = () => {
 
           // Calculate Pearson correlation coefficient
           if (matchedPairs.length > 1) {
-            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+            let sumX = 0; let sumY = 0; let sumXY = 0; let sumX2 = 0; let
+              sumY2 = 0;
 
             for (const [x, y] of matchedPairs) {
               sumX += x;
@@ -362,7 +358,7 @@ const Charts = () => {
       setChartType(ChartTypes.CORRELATION);
     } catch (error) {
       console.error('Error calculating correlation:', error);
-      alert('Error calculating correlation: ' + error.message);
+      alert(`Error calculating correlation: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -380,7 +376,7 @@ const Charts = () => {
         heatmapData.push({
           x: col,
           y: row,
-          value: correlationData[row][col]
+          value: correlationData[row][col],
         });
       });
     });
@@ -392,7 +388,7 @@ const Charts = () => {
     if (loading) {
       return (
         <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" style={{ borderColor: currentColor }}></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" style={{ borderColor: currentColor }} />
           <p className="ml-2">Loading chart data...</p>
         </div>
       );
@@ -424,203 +420,201 @@ const Charts = () => {
   };
 
   // Render line chart
-const renderLineChart = () => {
-  if (!chartData || chartData.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-96 bg-gray-50 rounded-lg">
-        <FiBarChart2 className="text-5xl mb-3 text-gray-400" />
-        <p className="text-gray-500 mb-2">No chart data</p>
-        <p className="text-gray-400 text-sm">Select variables and click "Generate Chart" to visualize data</p>
-      </div>
-    );
-  }
-
-  // Transform the data for line chart
-  const transformedData = [];
-
-  // Ensure we have data points with valid structure
-  chartData.forEach(series => {
-    if (series && series.data && Array.isArray(series.data) && series.data.length > 0) {
-      const validData = series.data.filter(point =>
-        point && typeof point.x !== 'undefined' && typeof point.y !== 'undefined'
+  const renderLineChart = () => {
+    if (!chartData || chartData.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center h-96 bg-gray-50 rounded-lg">
+          <FiBarChart2 className="text-5xl mb-3 text-gray-400" />
+          <p className="text-gray-500 mb-2">No chart data</p>
+          <p className="text-gray-400 text-sm">Select variables and click "Generate Chart" to visualize data</p>
+        </div>
       );
+    }
 
-      if (validData.length > 0) {
-        transformedData.push({
-          dataSource: validData.map(point => ({
-            x: typeof point.x === 'string' ? new Date(point.x) : point.x,
-            y: point.y
-          })),
-          xName: 'x',
-          yName: 'y',
-          name: series.name,
-          type: 'Line',
-          width: 2,
-          marker: { visible: true },
-          fill: chartColorPalette[transformedData.length % chartColorPalette.length]
+    // Transform the data for line chart
+    const transformedData = [];
+
+    // Ensure we have data points with valid structure
+    chartData.forEach((series) => {
+      if (series && series.data && Array.isArray(series.data) && series.data.length > 0) {
+        const validData = series.data.filter((point) => point && typeof point.x !== 'undefined' && typeof point.y !== 'undefined');
+
+        if (validData.length > 0) {
+          transformedData.push({
+            dataSource: validData.map((point) => ({
+              x: typeof point.x === 'string' ? new Date(point.x) : point.x,
+              y: point.y,
+            })),
+            xName: 'x',
+            yName: 'y',
+            name: series.name,
+            type: 'Line',
+            width: 2,
+            marker: { visible: true },
+            fill: chartColorPalette[transformedData.length % chartColorPalette.length],
+          });
+        }
+      }
+    });
+
+    // If no transformed data, show empty state
+    if (transformedData.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center h-96 bg-gray-50 rounded-lg">
+          <FiBarChart2 className="text-5xl mb-3 text-gray-400" />
+          <p className="text-gray-500 mb-2">No valid data points</p>
+          <p className="text-gray-400 text-sm">The selected variables don't have any valid data points</p>
+        </div>
+      );
+    }
+
+    // Calculate Y-axis ranges separately for each axis
+    let primaryMinY = Number.MAX_VALUE;
+    let primaryMaxY = Number.MIN_VALUE;
+    let secondaryMinY = Number.MAX_VALUE;
+    let secondaryMaxY = Number.MIN_VALUE;
+
+    transformedData.forEach((series, index) => {
+    // Determine if this series should use the secondary axis
+      const useSecondary = useDualAxis && index >= Math.ceil(transformedData.length / 2);
+
+      if (series.dataSource && Array.isArray(series.dataSource)) {
+        series.dataSource.forEach((point) => {
+          if (point && typeof point.y === 'number') {
+            if (useSecondary) {
+              secondaryMinY = Math.min(secondaryMinY, point.y);
+              secondaryMaxY = Math.max(secondaryMaxY, point.y);
+            } else {
+              primaryMinY = Math.min(primaryMinY, point.y);
+              primaryMaxY = Math.max(primaryMaxY, point.y);
+            }
+          }
         });
       }
-    }
-  });
+    });
 
-  // If no transformed data, show empty state
-  if (transformedData.length === 0) {
+    // Add padding to both axes
+    const primaryYRange = primaryMaxY - primaryMinY;
+    const primaryPadding = primaryYRange * 0.1;
+
+    // Set appropriate min/max for primary axis, handling edge cases
+    if (primaryMinY !== Number.MAX_VALUE) {
+      primaryMinY -= primaryPadding;
+    } else {
+      primaryMinY = 0;
+    }
+
+    if (primaryMaxY !== Number.MIN_VALUE) {
+      primaryMaxY += primaryPadding;
+    } else {
+      primaryMaxY = 100;
+    }
+
+    // Same for secondary axis
+    const secondaryYRange = secondaryMaxY - secondaryMinY;
+    const secondaryPadding = secondaryYRange * 0.1;
+
+    if (secondaryMinY !== Number.MAX_VALUE) {
+      secondaryMinY -= secondaryPadding;
+    } else {
+      secondaryMinY = 0;
+    }
+
+    if (secondaryMaxY !== Number.MIN_VALUE) {
+      secondaryMaxY += secondaryPadding;
+    } else {
+      secondaryMaxY = 100;
+    }
+
+    // Ensure valid axis intervals
+    const primaryYInterval = Math.ceil(primaryYRange / 5) || 1;
+    const secondaryYInterval = Math.ceil(secondaryYRange / 5) || 1;
+
     return (
-      <div className="flex flex-col items-center justify-center h-96 bg-gray-50 rounded-lg">
-        <FiBarChart2 className="text-5xl mb-3 text-gray-400" />
-        <p className="text-gray-500 mb-2">No valid data points</p>
-        <p className="text-gray-400 text-sm">The selected variables don't have any valid data points</p>
+      <div className="chart-container">
+        <ChartComponent
+          id="line-chart"
+          height="100%"
+          width="100%"
+          primaryXAxis={{
+            valueType: 'DateTime',
+            labelFormat: 'dd MMM yyyy',
+            majorGridLines: { width: 0 },
+            intervalType: 'Months',
+            edgeLabelPlacement: 'Shift',
+            labelStyle: { size: '14px' },
+          }}
+          primaryYAxis={{
+            minimum: primaryMinY,
+            maximum: primaryMaxY,
+            interval: primaryYInterval,
+            labelFormat: '{value}',
+            lineStyle: { width: 1 },
+            majorGridLines: { width: 1 },
+            majorTickLines: { width: 1 },
+            minorTickLines: { width: 0 },
+            labelStyle: { size: '14px' },
+            title: 'Primary Axis',
+            titleStyle: { fontWeight: '600', size: '14px' },
+          }}
+        // Add secondary Y-axis
+          axes={useDualAxis ? [{
+            name: 'secondaryAxis',
+            opposedPosition: true,
+            minimum: secondaryMinY,
+            maximum: secondaryMaxY,
+            interval: secondaryYInterval,
+            labelFormat: '{value}',
+            title: 'Secondary Axis',
+            titleStyle: { fontWeight: '600', size: '14px' },
+            majorGridLines: { width: 0 },
+            lineStyle: { width: 1 },
+            majorTickLines: { width: 1 },
+          }] : []}
+          chartArea={{ border: { width: 0 } }}
+          tooltip={{
+            enable: true }}
+          legendSettings={{ visible: true }}
+          title={chartTitle}
+          zoomSettings={{
+            enableMouseWheelZooming: true,
+            enablePinchZooming: true,
+            enableSelectionZooming: true,
+            enableScrollbar: true,
+            enablePan: true,
+            mode: 'X',
+            toolbarItems: ['Zoom', 'ZoomIn', 'ZoomOut', 'Pan', 'Reset'],
+            showToolbar: true,
+            toolbarPosition: 'TopRight',
+          }}
+        >
+          <Inject services={[LineSeries, DateTime, Legend, Tooltip, Zoom]} />
+          <SeriesCollectionDirective>
+            {transformedData.map((series, index) => {
+            // Determine if this series should use the secondary axis
+              const useSecondary = useDualAxis && index >= Math.ceil(transformedData.length / 2);
+
+              return (
+                <SeriesDirective
+                  key={index}
+                  dataSource={series.dataSource}
+                  xName="x"
+                  yName="y"
+                  name={series.name}
+                  type="Line"
+                  width={2}
+                  marker={series.marker}
+                  fill={series.fill || chartColorPalette[index % chartColorPalette.length]}
+                // Set yAxisName for secondary axis series
+                  yAxisName={useSecondary ? 'secondaryAxis' : null}
+                />
+              );
+            })}
+          </SeriesCollectionDirective>
+        </ChartComponent>
       </div>
     );
-  }
-
-  // Calculate Y-axis ranges separately for each axis
-  let primaryMinY = Number.MAX_VALUE;
-  let primaryMaxY = Number.MIN_VALUE;
-  let secondaryMinY = Number.MAX_VALUE;
-  let secondaryMaxY = Number.MIN_VALUE;
-
-  transformedData.forEach((series, index) => {
-    // Determine if this series should use the secondary axis
-    const useSecondary = useDualAxis && index >= Math.ceil(transformedData.length / 2);
-
-    if (series.dataSource && Array.isArray(series.dataSource)) {
-      series.dataSource.forEach(point => {
-        if (point && typeof point.y === 'number') {
-          if (useSecondary) {
-            secondaryMinY = Math.min(secondaryMinY, point.y);
-            secondaryMaxY = Math.max(secondaryMaxY, point.y);
-          } else {
-            primaryMinY = Math.min(primaryMinY, point.y);
-            primaryMaxY = Math.max(primaryMaxY, point.y);
-          }
-        }
-      });
-    }
-  });
-
-  // Add padding to both axes
-  const primaryYRange = primaryMaxY - primaryMinY;
-  const primaryPadding = primaryYRange * 0.1;
-
-  // Set appropriate min/max for primary axis, handling edge cases
-  if (primaryMinY !== Number.MAX_VALUE) {
-    primaryMinY = primaryMinY - primaryPadding;
-  } else {
-    primaryMinY = 0;
-  }
-
-  if (primaryMaxY !== Number.MIN_VALUE) {
-    primaryMaxY = primaryMaxY + primaryPadding;
-  } else {
-    primaryMaxY = 100;
-  }
-
-  // Same for secondary axis
-  const secondaryYRange = secondaryMaxY - secondaryMinY;
-  const secondaryPadding = secondaryYRange * 0.1;
-
-  if (secondaryMinY !== Number.MAX_VALUE) {
-    secondaryMinY = secondaryMinY - secondaryPadding;
-  } else {
-    secondaryMinY = 0;
-  }
-
-  if (secondaryMaxY !== Number.MIN_VALUE) {
-    secondaryMaxY = secondaryMaxY + secondaryPadding;
-  } else {
-    secondaryMaxY = 100;
-  }
-
-  // Ensure valid axis intervals
-  const primaryYInterval = Math.ceil(primaryYRange / 5) || 1;
-  const secondaryYInterval = Math.ceil(secondaryYRange / 5) || 1;
-
-  return (
-    <div className="chart-container">
-      <ChartComponent
-        id="line-chart"
-        height="100%"
-        width="100%"
-        primaryXAxis={{
-          valueType: 'DateTime',
-          labelFormat: 'dd MMM yyyy',
-          majorGridLines: { width: 0 },
-          intervalType: 'Months',
-          edgeLabelPlacement: 'Shift',
-          labelStyle: { size: '14px' }
-        }}
-        primaryYAxis={{
-          minimum: primaryMinY,
-          maximum: primaryMaxY,
-          interval: primaryYInterval,
-          labelFormat: '{value}',
-          lineStyle: { width: 1 },
-          majorGridLines: { width: 1 },
-          majorTickLines: { width: 1 },
-          minorTickLines: { width: 0 },
-          labelStyle: { size: '14px' },
-          title: 'Primary Axis',
-          titleStyle: { fontWeight: '600', size: '14px' }
-        }}
-        // Add secondary Y-axis
-        axes={useDualAxis ? [{
-          name: 'secondaryAxis',
-          opposedPosition: true,
-          minimum: secondaryMinY,
-          maximum: secondaryMaxY,
-          interval: secondaryYInterval,
-          labelFormat: '{value}',
-          title: 'Secondary Axis',
-          titleStyle: { fontWeight: '600', size: '14px' },
-          majorGridLines: { width: 0 },
-          lineStyle: { width: 1 },
-          majorTickLines: { width: 1 }
-        }] : []}
-        chartArea={{ border: { width: 0 } }}
-        tooltip={{
-          enable: true }}
-        legendSettings={{ visible: true }}
-        title={chartTitle}
-        zoomSettings={{
-          enableMouseWheelZooming: true,
-          enablePinchZooming: true,
-          enableSelectionZooming: true,
-          enableScrollbar: true,
-          enablePan: true,
-          mode: 'X',
-          toolbarItems: ['Zoom', 'ZoomIn', 'ZoomOut', 'Pan', 'Reset'],
-          showToolbar: true,
-          toolbarPosition: 'TopRight'
-        }}
-      >
-        <Inject services={[LineSeries, DateTime, Legend, Tooltip, Zoom]} />
-        <SeriesCollectionDirective>
-          {transformedData.map((series, index) => {
-            // Determine if this series should use the secondary axis
-            const useSecondary = useDualAxis && index >= Math.ceil(transformedData.length / 2);
-
-            return (
-              <SeriesDirective
-                key={index}
-                dataSource={series.dataSource}
-                xName="x"
-                yName="y"
-                name={series.name}
-                type="Line"
-                width={2}
-                marker={series.marker}
-                fill={series.fill || chartColorPalette[index % chartColorPalette.length]}
-                // Set yAxisName for secondary axis series
-                yAxisName={useSecondary ? 'secondaryAxis' : null}
-              />
-            );
-          })}
-        </SeriesCollectionDirective>
-      </ChartComponent>
-    </div>
-  );
-};
+  };
 
   // Render scatter chart
   const renderScatterChart = () => {
@@ -648,8 +642,8 @@ const renderLineChart = () => {
     }
 
     // Calculate min and max values for both axes with some padding
-    const xValues = seriesData[0].dataSource.map(point => point.x);
-    const yValues = seriesData[0].dataSource.map(point => point.y);
+    const xValues = seriesData[0].dataSource.map((point) => point.x);
+    const yValues = seriesData[0].dataSource.map((point) => point.y);
 
     const minX = Math.min(...xValues);
     const maxX = Math.max(...xValues);
@@ -671,7 +665,7 @@ const renderLineChart = () => {
             minimum: minX - xPadding,
             maximum: maxX + xPadding,
             interval: Math.ceil((maxX - minX) / 5),
-            labelStyle: { size: '14px' }
+            labelStyle: { size: '14px' },
           }}
           primaryYAxis={{
             title: chartData[1].name,
@@ -679,7 +673,7 @@ const renderLineChart = () => {
             minimum: minY - yPadding,
             maximum: maxY + yPadding,
             interval: Math.ceil((maxY - minY) / 5),
-            labelStyle: { size: '14px' }
+            labelStyle: { size: '14px' },
           }}
           chartArea={{ border: { width: 0 } }}
           tooltip={{
@@ -696,7 +690,7 @@ const renderLineChart = () => {
             mode: 'XY', // Allow zooming in both directions for scatter plot
             toolbarItems: ['Zoom', 'ZoomIn', 'ZoomOut', 'Pan', 'Reset'],
             showToolbar: true,
-            toolbarPosition: 'TopRight'
+            toolbarPosition: 'TopRight',
           }}
           margin={{ left: 15, right: 15, top: 15, bottom: 15 }}
         >
@@ -708,14 +702,14 @@ const renderLineChart = () => {
                 dataSource={series.dataSource}
                 xName="x"
                 yName="y"
-                name={series.name || `Series ${index+1}`}
+                name={series.name || `Series ${index + 1}`}
                 type="Scatter"
                 marker={{
                   visible: true,
                   height: 10,
                   width: 10,
                   shape: 'Circle',
-                  fill: '#00b7c3'
+                  fill: '#00b7c3',
                 }}
               />
             ))}
@@ -750,219 +744,219 @@ const renderLineChart = () => {
       );
     }
 
-      // Calculate the maximum value for the y-axis for each series individually
-  let maxYValue = 0;
-  seriesData.forEach(series => {
+    // Calculate the maximum value for the y-axis for each series individually
+    let maxYValue = 0;
+    seriesData.forEach((series) => {
     // Find max value in this series
-    const seriesMax = Math.max(...series.dataSource.map(point => point.y));
-    // Update overall max if this series has a higher value
-    maxYValue = Math.max(maxYValue, seriesMax);
-  });
+      const seriesMax = Math.max(...series.dataSource.map((point) => point.y));
+      // Update overall max if this series has a higher value
+      maxYValue = Math.max(maxYValue, seriesMax);
+    });
 
-  // Add generous padding to the max value (20%)
-  maxYValue = Math.ceil(maxYValue * 1.2);
+    // Add generous padding to the max value (20%)
+    maxYValue = Math.ceil(maxYValue * 1.2);
 
-  return (
-    <div className="chart-container">
-      <ChartComponent
-        id="column-chart"
-        height="100%"
-        width="100%"
-        primaryXAxis={{
-          valueType: 'DateTime',
-          labelFormat: 'dd MMM yyyy',
-          majorGridLines: { width: 0 },
-          intervalType: 'Months',
-          edgeLabelPlacement: 'Shift',
-          labelStyle: { size: '14px' },
-          skeleton: 'MMM',
-          intervalType: 'Months',
-          interval: 1,
-          minimum: new Date(new Date(Math.min(...seriesData[0].dataSource.map(p => new Date(p.x)))).getFullYear(), new Date(Math.min(...seriesData[0].dataSource.map(p => new Date(p.x)))).getMonth() - 1, 1),
-          maximum: new Date(new Date(Math.max(...seriesData[0].dataSource.map(p => new Date(p.x)))).getFullYear(), new Date(Math.max(...seriesData[0].dataSource.map(p => new Date(p.x)))).getMonth() + 1, 0)
-        }}
-        primaryYAxis={{
-          minimum: 0,
-          maximum: maxYValue,
-          interval: Math.ceil(maxYValue / 5),
-          majorGridLines: { width: 1 },
-          majorTickLines: { width: 0 },
-          lineStyle: { width: 0 },
-          labelStyle: { size: '14px' },
-          title: 'Primary Axis',
-          titleStyle: { fontWeight: '600', size: '14px' }
-        }}
+    return (
+      <div className="chart-container">
+        <ChartComponent
+          id="column-chart"
+          height="100%"
+          width="100%"
+          primaryXAxis={{
+            valueType: 'DateTime',
+            labelFormat: 'dd MMM yyyy',
+            majorGridLines: { width: 0 },
+            intervalType: 'Months',
+            edgeLabelPlacement: 'Shift',
+            labelStyle: { size: '14px' },
+            skeleton: 'MMM',
+            intervalType: 'Months',
+            interval: 1,
+            minimum: new Date(new Date(Math.min(...seriesData[0].dataSource.map((p) => new Date(p.x)))).getFullYear(), new Date(Math.min(...seriesData[0].dataSource.map((p) => new Date(p.x)))).getMonth() - 1, 1),
+            maximum: new Date(new Date(Math.max(...seriesData[0].dataSource.map((p) => new Date(p.x)))).getFullYear(), new Date(Math.max(...seriesData[0].dataSource.map((p) => new Date(p.x)))).getMonth() + 1, 0),
+          }}
+          primaryYAxis={{
+            minimum: 0,
+            maximum: maxYValue,
+            interval: Math.ceil(maxYValue / 5),
+            majorGridLines: { width: 1 },
+            majorTickLines: { width: 0 },
+            lineStyle: { width: 0 },
+            labelStyle: { size: '14px' },
+            title: 'Primary Axis',
+            titleStyle: { fontWeight: '600', size: '14px' },
+          }}
         // Add secondary Y-axis for column chart as well
-        axes={useDualAxis ? [{
-          name: 'secondaryAxis',
-          opposedPosition: true,
-          minimum: 0,
-          maximum: maxYValue,
-          interval: Math.ceil(maxYValue / 5),
-          labelFormat: '{value}',
-          title: 'Secondary Axis',
-          titleStyle: { fontWeight: '600', size: '14px' },
-          majorGridLines: { width: 0 },
-          lineStyle: { width: 1 },
-          majorTickLines: { width: 1 }
-        }] : []}
-        chartArea={{ border: { width: 0 } }}
-        tooltip={{
-          enable: true }}
-        title={chartTitle}
-        legendSettings={{ visible: true }}
-        zoomSettings={{
-          enableMouseWheelZooming: true,
-          enablePinchZooming: true,
-          enableSelectionZooming: true,
-          enableScrollbar: true,
-          enablePan: true,
-          mode: 'X',
-          toolbarItems: ['Zoom', 'ZoomIn', 'ZoomOut', 'Pan', 'Reset'],
-          showToolbar: true,
-          toolbarPosition: 'TopRight'
-        }}
-        margin={{ left: 15, right: 15, top: 15, bottom: 15 }}
-      >
-        <Inject services={[ColumnSeries, DateTime, Legend, Tooltip, Category, DataLabel, Zoom]} />
-        <SeriesCollectionDirective>
-          {seriesData.map((series, index) => {
+          axes={useDualAxis ? [{
+            name: 'secondaryAxis',
+            opposedPosition: true,
+            minimum: 0,
+            maximum: maxYValue,
+            interval: Math.ceil(maxYValue / 5),
+            labelFormat: '{value}',
+            title: 'Secondary Axis',
+            titleStyle: { fontWeight: '600', size: '14px' },
+            majorGridLines: { width: 0 },
+            lineStyle: { width: 1 },
+            majorTickLines: { width: 1 },
+          }] : []}
+          chartArea={{ border: { width: 0 } }}
+          tooltip={{
+            enable: true }}
+          title={chartTitle}
+          legendSettings={{ visible: true }}
+          zoomSettings={{
+            enableMouseWheelZooming: true,
+            enablePinchZooming: true,
+            enableSelectionZooming: true,
+            enableScrollbar: true,
+            enablePan: true,
+            mode: 'X',
+            toolbarItems: ['Zoom', 'ZoomIn', 'ZoomOut', 'Pan', 'Reset'],
+            showToolbar: true,
+            toolbarPosition: 'TopRight',
+          }}
+          margin={{ left: 15, right: 15, top: 15, bottom: 15 }}
+        >
+          <Inject services={[ColumnSeries, DateTime, Legend, Tooltip, Category, DataLabel, Zoom]} />
+          <SeriesCollectionDirective>
+            {seriesData.map((series, index) => {
             // Determine if this series should use the secondary axis
-            const useSecondary = useDualAxis && index >= Math.ceil(seriesData.length / 2);
+              const useSecondary = useDualAxis && index >= Math.ceil(seriesData.length / 2);
 
-            return (
+              return (
+                <SeriesDirective
+                  key={index}
+                  dataSource={series.dataSource}
+                  xName="x"
+                  yName="y"
+                  name={series.name}
+                  type="Column"
+                  width={2}
+                  opacity={0.8}
+                  fill={series.fill || chartColorPalette[index % chartColorPalette.length]}
+                // Set yAxisName for secondary axis series
+                  yAxisName={useSecondary ? 'secondaryAxis' : null}
+                />
+              );
+            })}
+          </SeriesCollectionDirective>
+        </ChartComponent>
+      </div>
+    );
+  };
+
+  // Render stacked chart
+  const renderStackedChart = () => {
+    if (!chartData || chartData.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center h-96 bg-gray-50 rounded-lg">
+          <MdStackedBarChart className="text-5xl mb-3 text-gray-400" />
+          <p className="text-gray-500 mb-2">No chart data</p>
+          <p className="text-gray-400 text-sm">Select variables and click "Generate Chart" to visualize data</p>
+        </div>
+      );
+    }
+
+    // Transform the data for stacked chart
+    const seriesData = transformForStackedChart(chartData);
+
+    if (!seriesData || seriesData.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center h-96 bg-gray-50 rounded-lg">
+          <MdStackedBarChart className="text-5xl mb-3 text-gray-400" />
+          <p className="text-gray-500 mb-2">No valid data points</p>
+          <p className="text-gray-400 text-sm">The selected variables don't have any valid data points</p>
+        </div>
+      );
+    }
+
+    // Calculate cumulative values for each x position
+    const cumulativeValues = {};
+    seriesData.forEach((series) => {
+      series.dataSource.forEach((point) => {
+        const xKey = point.x.toString();
+        if (!cumulativeValues[xKey]) {
+          cumulativeValues[xKey] = 0;
+        }
+        cumulativeValues[xKey] += point.y;
+      });
+    });
+
+    // Find the maximum cumulative value for the y-axis
+    const maxYValue = Math.max(...Object.values(cumulativeValues));
+
+    // Add padding to the max value
+    const yMax = Math.ceil(maxYValue * 1.1);
+
+    return (
+      <div className="chart-container">
+        <ChartComponent
+          id="stacked-chart"
+          height="100%"
+          width="100%"
+          primaryXAxis={{
+            valueType: 'DateTime',
+            labelFormat: 'dd MMM yyyy',
+            majorGridLines: { width: 0 },
+            intervalType: 'Months',
+            edgeLabelPlacement: 'Shift',
+            labelStyle: { size: '14px' },
+            skeleton: 'MMM',
+            intervalType: 'Months',
+            interval: 1,
+            minimum: new Date(new Date(Math.min(...Object.keys(cumulativeValues).map((x) => new Date(x)))).getFullYear(), new Date(Math.min(...Object.keys(cumulativeValues).map((x) => new Date(x)))).getMonth() - 1, 1),
+            maximum: new Date(new Date(Math.max(...Object.keys(cumulativeValues).map((x) => new Date(x)))).getFullYear(), new Date(Math.max(...Object.keys(cumulativeValues).map((x) => new Date(x)))).getMonth() + 1, 0),
+          }}
+          primaryYAxis={{
+            minimum: 0,
+            maximum: yMax,
+            interval: Math.ceil(yMax / 5),
+            majorGridLines: { width: 1 },
+            majorTickLines: { width: 0 },
+            lineStyle: { width: 0 },
+            labelStyle: { size: '14px' },
+          }}
+          chartArea={{ border: { width: 0 } }}
+          tooltip={{
+            enable: true }}
+          title={chartTitle}
+          legendSettings={{ visible: true }}
+        // Add zoom settings
+          zoomSettings={{
+            enableMouseWheelZooming: true,
+            enablePinchZooming: true,
+            enableSelectionZooming: true,
+            enableScrollbar: true,
+            enablePan: true,
+            mode: 'X',
+            toolbarItems: ['Zoom', 'ZoomIn', 'ZoomOut', 'Pan', 'Reset'],
+            showToolbar: true,
+            toolbarPosition: 'TopRight',
+          }}
+          margin={{ left: 15, right: 15, top: 15, bottom: 15 }}
+          enableSideBySidePlacement={false}
+        >
+          <Inject services={[StackingColumnSeries, DateTime, Legend, Tooltip, Category, DataLabel, Zoom]} />
+          <SeriesCollectionDirective>
+            {seriesData.map((series, index) => (
               <SeriesDirective
                 key={index}
                 dataSource={series.dataSource}
                 xName="x"
                 yName="y"
                 name={series.name}
-                type="Column"
-                width={2}
-                opacity={0.8}
+                type="StackingColumn"
                 fill={series.fill || chartColorPalette[index % chartColorPalette.length]}
-                // Set yAxisName for secondary axis series
-                yAxisName={useSecondary ? 'secondaryAxis' : null}
+                cornerRadius={{ topLeft: 0, topRight: 0 }}
+                marker={{ visible: false }}
               />
-            );
-          })}
-        </SeriesCollectionDirective>
-      </ChartComponent>
-    </div>
-  );
-};
-
-// Render stacked chart
-const renderStackedChart = () => {
-  if (!chartData || chartData.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-96 bg-gray-50 rounded-lg">
-        <MdStackedBarChart className="text-5xl mb-3 text-gray-400" />
-        <p className="text-gray-500 mb-2">No chart data</p>
-        <p className="text-gray-400 text-sm">Select variables and click "Generate Chart" to visualize data</p>
+            ))}
+          </SeriesCollectionDirective>
+        </ChartComponent>
       </div>
     );
-  }
-
-  // Transform the data for stacked chart
-  const seriesData = transformForStackedChart(chartData);
-
-  if (!seriesData || seriesData.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-96 bg-gray-50 rounded-lg">
-        <MdStackedBarChart className="text-5xl mb-3 text-gray-400" />
-        <p className="text-gray-500 mb-2">No valid data points</p>
-        <p className="text-gray-400 text-sm">The selected variables don't have any valid data points</p>
-      </div>
-    );
-  }
-
-  // Calculate cumulative values for each x position
-  const cumulativeValues = {};
-  seriesData.forEach(series => {
-    series.dataSource.forEach(point => {
-      const xKey = point.x.toString();
-      if (!cumulativeValues[xKey]) {
-        cumulativeValues[xKey] = 0;
-      }
-      cumulativeValues[xKey] += point.y;
-    });
-  });
-
-  // Find the maximum cumulative value for the y-axis
-  const maxYValue = Math.max(...Object.values(cumulativeValues));
-
-  // Add padding to the max value
-  const yMax = Math.ceil(maxYValue * 1.1);
-
-  return (
-    <div className="chart-container">
-      <ChartComponent
-        id="stacked-chart"
-        height="100%"
-        width="100%"
-        primaryXAxis={{
-          valueType: 'DateTime',
-          labelFormat: 'dd MMM yyyy',
-          majorGridLines: { width: 0 },
-          intervalType: 'Months',
-          edgeLabelPlacement: 'Shift',
-          labelStyle: { size: '14px' },
-          skeleton: 'MMM',
-          intervalType: 'Months',
-          interval: 1,
-          minimum: new Date(new Date(Math.min(...Object.keys(cumulativeValues).map(x => new Date(x)))).getFullYear(), new Date(Math.min(...Object.keys(cumulativeValues).map(x => new Date(x)))).getMonth() -1, 1),
-          maximum: new Date(new Date(Math.max(...Object.keys(cumulativeValues).map(x => new Date(x)))).getFullYear(), new Date(Math.max(...Object.keys(cumulativeValues).map(x => new Date(x)))).getMonth() + 1, 0)
-        }}
-        primaryYAxis={{
-          minimum: 0,
-          maximum: yMax,
-          interval: Math.ceil(yMax / 5),
-          majorGridLines: { width: 1 },
-          majorTickLines: { width: 0 },
-          lineStyle: { width: 0 },
-          labelStyle: { size: '14px' }
-        }}
-        chartArea={{ border: { width: 0 } }}
-        tooltip={{
-          enable: true }}
-        title={chartTitle}
-        legendSettings={{ visible: true }}
-        // Add zoom settings
-        zoomSettings={{
-          enableMouseWheelZooming: true,
-          enablePinchZooming: true,
-          enableSelectionZooming: true,
-          enableScrollbar: true,
-          enablePan: true,
-          mode: 'X',
-          toolbarItems: ['Zoom', 'ZoomIn', 'ZoomOut', 'Pan', 'Reset'],
-          showToolbar: true,
-          toolbarPosition: 'TopRight'
-        }}
-        margin={{ left: 15, right: 15, top: 15, bottom: 15 }}
-        enableSideBySidePlacement={false}
-      >
-        <Inject services={[StackingColumnSeries, DateTime, Legend, Tooltip, Category, DataLabel, Zoom]} />
-        <SeriesCollectionDirective>
-          {seriesData.map((series, index) => (
-            <SeriesDirective
-              key={index}
-              dataSource={series.dataSource}
-              xName="x"
-              yName="y"
-              name={series.name}
-              type="StackingColumn"
-              fill={series.fill || chartColorPalette[index % chartColorPalette.length]}
-              cornerRadius={{ topLeft: 0, topRight: 0 }}
-              marker={{ visible: false }}
-            />
-          ))}
-        </SeriesCollectionDirective>
-      </ChartComponent>
-    </div>
-  );
-};
+  };
 
   // Render correlation matrix
   const renderCorrelationMatrix = () => {
@@ -1013,8 +1007,8 @@ const renderStackedChart = () => {
         <table className="min-w-full border border-gray-300">
           <thead>
             <tr>
-              <th className="py-2 px-4 border bg-gray-50"></th>
-              {variables.map(variable => (
+              <th className="py-2 px-4 border bg-gray-50" />
+              {variables.map((variable) => (
                 <th key={variable} className="py-2 px-4 border bg-gray-50 font-medium text-sm">
                   {variable}
                 </th>
@@ -1022,12 +1016,12 @@ const renderStackedChart = () => {
             </tr>
           </thead>
           <tbody>
-            {variables.map(row => (
+            {variables.map((row) => (
               <tr key={row}>
                 <th className="py-2 px-4 border bg-gray-50 font-medium text-sm text-left">
                   {row}
                 </th>
-                {variables.map(col => {
+                {variables.map((col) => {
                   const value = correlationData[row][col];
                   return (
                     <td key={`${row}-${col}`} className="py-2 px-4 border text-center">
@@ -1144,7 +1138,7 @@ const renderStackedChart = () => {
                 <div className="p-3 text-center text-gray-500">No variables found</div>
               ) : (
                 <div className="divide-y divide-gray-200">
-                  {filteredVariables.map(variable => (
+                  {filteredVariables.map((variable) => (
                     <div key={variable.name} className="p-2 hover:bg-gray-100 flex items-center">
                       <input
                         type="checkbox"
@@ -1170,7 +1164,7 @@ const renderStackedChart = () => {
               <label htmlFor="model-select" className="block text-sm font-medium mb-1">Select Model (Optional)</label>
               <DropDownListComponent
                 id="model-select"
-                dataSource={[{text: 'No Model (Raw Data)', value: ''}, ...models.map(m => ({ text: m.name, value: m.name }))]}
+                dataSource={[{ text: 'No Model (Raw Data)', value: '' }, ...models.map((m) => ({ text: m.name, value: m.name }))]}
                 fields={{ text: 'text', value: 'value' }}
                 value={selectedModel}
                 change={(e) => setSelectedModel(e.value)}
@@ -1193,24 +1187,24 @@ const renderStackedChart = () => {
             </div>
 
             <div className="flex items-center mb-3">
-  <input
-    type="checkbox"
-    id="show-transformed"
-    className="form-checkbox h-4 w-4 text-blue-600"
-    checked={showTransformed}
-    onChange={() => setShowTransformed(!showTransformed)}
-  />
-  <label htmlFor="show-transformed" className="ml-2 text-sm font-medium">
-    Chart Transformed Variable
-  </label>
-</div>
+              <input
+                type="checkbox"
+                id="show-transformed"
+                className="form-checkbox h-4 w-4 text-blue-600"
+                checked={showTransformed}
+                onChange={() => setShowTransformed(!showTransformed)}
+              />
+              <label htmlFor="show-transformed" className="ml-2 text-sm font-medium">
+                Chart Transformed Variable
+              </label>
+            </div>
 
             {includeKPI && (
               <div className="mb-3">
                 <label htmlFor="kpi-select" className="block text-sm font-medium mb-1">Select KPI</label>
                 <DropDownListComponent
                   id="kpi-select"
-                  dataSource={variables.map(v => ({ text: v.name, value: v.name }))}
+                  dataSource={variables.map((v) => ({ text: v.name, value: v.name }))}
                   fields={{ text: 'text', value: 'value' }}
                   value={kpiVariable}
                   change={(e) => setKpiVariable(e.value)}
@@ -1247,25 +1241,25 @@ const renderStackedChart = () => {
         </div>
 
         {/* Right Panel - Chart Display */}
-<div
-  ref={chartContainerRef}
-  className="md:col-span-9 bg-white p-0 rounded-lg shadow-sm relative w-full"
-  style={{ minHeight: '600px', width: '100%', margin: 0, padding: 0 }}
->
-  <div className="mb-2 px-4 pt-4">
-    <input
-      type="text"
-      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-      value={chartTitle}
-      onChange={(e) => setChartTitle(e.target.value)}
-      placeholder="Chart Title"
-    />
-  </div>
+        <div
+          ref={chartContainerRef}
+          className="md:col-span-9 bg-white p-0 rounded-lg shadow-sm relative w-full"
+          style={{ minHeight: '600px', width: '100%', margin: 0, padding: 0 }}
+        >
+          <div className="mb-2 px-4 pt-4">
+            <input
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={chartTitle}
+              onChange={(e) => setChartTitle(e.target.value)}
+              placeholder="Chart Title"
+            />
+          </div>
 
-  <div className="h-full w-full" style={{ width: '100%' }}>
-    {renderChart()}
-  </div>
-</div>
+          <div className="h-full w-full" style={{ width: '100%' }}>
+            {renderChart()}
+          </div>
+        </div>
       </div>
     </div>
   );

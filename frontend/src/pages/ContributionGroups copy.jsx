@@ -11,22 +11,22 @@ import {
   Toolbar,
   Edit,
   Sort,
-  Filter
+  Filter,
 } from '@syncfusion/ej2-react-grids';
 import {
-  DropDownListComponent
+  DropDownListComponent,
 } from '@syncfusion/ej2-react-dropdowns';
 import {
-  ColorPickerComponent
+  ColorPickerComponent,
 } from '@syncfusion/ej2-react-inputs';
 import {
-  ButtonComponent
+  ButtonComponent,
 } from '@syncfusion/ej2-react-buttons';
+import { FiSave, FiRefreshCw } from 'react-icons/fi';
 import { Header } from '../components';
 import { useStateContext } from '../contexts/ContextProvider';
 import apiService from '../services/api';
 import ErrorBoundary from '../components/ErrorBoundary';
-import { FiSave, FiRefreshCw } from 'react-icons/fi';
 
 const ContributionGroups = () => {
   const { currentColor } = useStateContext();
@@ -55,7 +55,7 @@ const ContributionGroups = () => {
   const adjustmentOptions = [
     { text: 'None', value: '' },
     { text: 'Min', value: 'Min' },
-    { text: 'Max', value: 'Max' }
+    { text: 'Max', value: 'Max' },
   ];
 
   // Load models on component mount
@@ -67,7 +67,7 @@ const ContributionGroups = () => {
   useEffect(() => {
     if (variables.length > 0) {
       const groups = {};
-      variables.forEach(variable => {
+      variables.forEach((variable) => {
         if (variable.Group) {
           groups[variable.Group] = true;
         }
@@ -88,12 +88,12 @@ const ContributionGroups = () => {
           fetchModelVariables(response.activeModel);
         }
       } else {
-        setError('Failed to load models: ' + response.error);
+        setError(`Failed to load models: ${response.error}`);
       }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching models:', error);
-      setError('Error loading models: ' + error.message);
+      setError(`Error loading models: ${error.message}`);
       setLoading(false);
     }
   };
@@ -114,13 +114,13 @@ const ContributionGroups = () => {
         const groupsResponse = await apiService.getContributionGroups(modelName);
 
         // Add Group and Adjustment properties if not present
-        const variablesWithGroups = response.variables.map(variable => {
+        const variablesWithGroups = response.variables.map((variable) => {
           // Check if we have saved group settings for this variable
           let group = 'Other';
           let adjustment = '';
 
-          if (groupsResponse.success && groupsResponse.groupSettings &&
-              groupsResponse.groupSettings[variable.name]) {
+          if (groupsResponse.success && groupsResponse.groupSettings
+              && groupsResponse.groupSettings[variable.name]) {
             group = groupsResponse.groupSettings[variable.name].Group || 'Other';
             adjustment = groupsResponse.groupSettings[variable.name].Adjustment || '';
           }
@@ -129,7 +129,7 @@ const ContributionGroups = () => {
             ...variable,
             Group: group,
             Adjustment: adjustment,
-            selected: false
+            selected: false,
           };
         });
 
@@ -139,13 +139,13 @@ const ContributionGroups = () => {
         // Also fetch group colors
         fetchGroupColors(modelName);
       } else {
-        setError('Failed to load model variables: ' + response.error);
+        setError(`Failed to load model variables: ${response.error}`);
       }
 
       setLoading(false);
     } catch (error) {
       console.error('Error fetching model variables:', error);
-      setError('Error loading model variables: ' + error.message);
+      setError(`Error loading model variables: ${error.message}`);
       setLoading(false);
     }
   };
@@ -171,12 +171,12 @@ const ContributionGroups = () => {
         setSuccess('Group colors saved successfully');
         setTimeout(() => setSuccess(null), 3000);
       } else {
-        setError('Failed to save group colors: ' + response.error);
+        setError(`Failed to save group colors: ${response.error}`);
       }
       setSaving(false);
     } catch (error) {
       console.error('Error saving group colors:', error);
-      setError('Error saving group colors: ' + error.message);
+      setError(`Error saving group colors: ${error.message}`);
       setSaving(false);
     }
   };
@@ -185,7 +185,7 @@ const ContributionGroups = () => {
   const handleGroupColorChange = (group, color) => {
     const updatedColors = {
       ...groupColors,
-      [group]: color
+      [group]: color,
     };
     setGroupColors(updatedColors);
     saveGroupColors(updatedColors);
@@ -203,7 +203,7 @@ const ContributionGroups = () => {
   const handleAdjustmentChange = (variableName, value) => {
     if (selectedVariables.includes(variableName) && selectedVariables.length > 1) {
       // Bulk update for selected variables
-      const updatedVariables = variables.map(v => {
+      const updatedVariables = variables.map((v) => {
         if (selectedVariables.includes(v.name)) {
           return { ...v, Adjustment: value };
         }
@@ -214,9 +214,7 @@ const ContributionGroups = () => {
       setFilteredVariables(updatedVariables);
     } else {
       // Single variable update
-      const updatedVariables = variables.map(v =>
-        v.name === variableName ? { ...v, Adjustment: value } : v
-      );
+      const updatedVariables = variables.map((v) => (v.name === variableName ? { ...v, Adjustment: value } : v));
 
       setVariables(updatedVariables);
       setFilteredVariables(updatedVariables);
@@ -227,7 +225,7 @@ const ContributionGroups = () => {
   const handleGroupChange = (variableName, newValue) => {
     if (selectedVariables.includes(variableName) && selectedVariables.length > 1) {
       // Bulk update for selected variables
-      const updatedVariables = variables.map(v => {
+      const updatedVariables = variables.map((v) => {
         if (selectedVariables.includes(v.name)) {
           return { ...v, Group: newValue };
         }
@@ -238,9 +236,7 @@ const ContributionGroups = () => {
       setFilteredVariables(updatedVariables);
     } else {
       // Single variable update
-      const updatedVariables = variables.map(v =>
-        v.name === variableName ? { ...v, Group: newValue } : v
-      );
+      const updatedVariables = variables.map((v) => (v.name === variableName ? { ...v, Group: newValue } : v));
 
       setVariables(updatedVariables);
       setFilteredVariables(updatedVariables);
@@ -249,12 +245,11 @@ const ContributionGroups = () => {
 
   // Handle checkbox selection
   const handleCheckboxClick = (variableName) => {
-    setSelectedVariables(prev => {
+    setSelectedVariables((prev) => {
       if (prev.includes(variableName)) {
-        return prev.filter(name => name !== variableName);
-      } else {
-        return [...prev, variableName];
+        return prev.filter((name) => name !== variableName);
       }
+      return [...prev, variableName];
     });
   };
 
@@ -262,7 +257,7 @@ const ContributionGroups = () => {
   const handleSelectAll = (checked) => {
     if (checked) {
       // Select all visible variables
-      setSelectedVariables(filteredVariables.map(v => v.name));
+      setSelectedVariables(filteredVariables.map((v) => v.name));
     } else {
       // Clear selections
       setSelectedVariables([]);
@@ -282,10 +277,10 @@ const ContributionGroups = () => {
       // Create groupSettings object to send to API
       const groupSettings = {};
 
-      variables.forEach(variable => {
+      variables.forEach((variable) => {
         groupSettings[variable.name] = {
           Group: variable.Group || 'Other',
-          Adjustment: variable.Adjustment || ''
+          Adjustment: variable.Adjustment || '',
         };
       });
 
@@ -295,67 +290,63 @@ const ContributionGroups = () => {
         setSuccess('Contribution groups saved successfully');
         setTimeout(() => setSuccess(null), 3000); // Clear success message after 3 seconds
       } else {
-        setError('Failed to save contribution groups: ' + response.error);
+        setError(`Failed to save contribution groups: ${response.error}`);
       }
 
       setSaving(false);
     } catch (error) {
       console.error('Error saving contribution groups:', error);
-      setError('Error saving contribution groups: ' + error.message);
+      setError(`Error saving contribution groups: ${error.message}`);
       setSaving(false);
     }
   };
 
   // Dropdown template for the Adjustment column
-  const adjustmentTemplate = (props) => {
-    return (
-      <DropDownListComponent
-        id={`adjustment-${props.name}`}
-        dataSource={adjustmentOptions}
-        fields={{ text: 'text', value: 'value' }}
-        value={props.Adjustment}
-        change={(e) => handleAdjustmentChange(props.name, e.value)}
-        placeholder="Select"
-        popupHeight="240px"
-        style={{ width: '100%' }}
-      />
-    );
-  };
+  const adjustmentTemplate = (props) => (
+    <DropDownListComponent
+      id={`adjustment-${props.name}`}
+      dataSource={adjustmentOptions}
+      fields={{ text: 'text', value: 'value' }}
+      value={props.Adjustment}
+      change={(e) => handleAdjustmentChange(props.name, e.value)}
+      placeholder="Select"
+      popupHeight="240px"
+      style={{ width: '100%' }}
+    />
+  );
 
   // Group column editable cell template
-  const groupTemplate = (props) => {
-    return (
-      <div
-        className="group-cell-editable cursor-pointer p-2 rounded hover:bg-gray-100"
-        onClick={(e) => {
-          // Create an editable input field when clicked
-          const cell = e.currentTarget;
-          cell.innerHTML = '';
+  const groupTemplate = (props) => (
+    <div
+      className="group-cell-editable cursor-pointer p-2 rounded hover:bg-gray-100"
+      onClick={(e) => {
+        // Create an editable input field when clicked
+        const cell = e.currentTarget;
+        cell.innerHTML = '';
 
-          const input = document.createElement('input');
-          input.type = 'text';
-          input.className = 'w-full p-1 border rounded';
-          input.value = props.Group;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'w-full p-1 border rounded';
+        input.value = props.Group;
 
-          input.onblur = () => {
-            handleGroupChange(props.name, input.value);
-            cell.innerHTML = input.value;
-          };
+        input.onblur = () => {
+          handleGroupChange(props.name, input.value);
+          cell.innerHTML = input.value;
+        };
 
-          input.onkeydown = (keyEvent) => {
-            if (keyEvent.key === 'Enter') {
-              input.blur();
-            }
-          };
+        input.onkeydown = (keyEvent) => {
+          if (keyEvent.key === 'Enter') {
+            input.blur();
+          }
+        };
 
-          cell.appendChild(input);
-          input.focus();
-        }}
-      >
-        {props.Group}
-      </div>
-    );
-  };
+        cell.appendChild(input);
+        input.focus();
+      }}
+    >
+      {props.Group}
+    </div>
+  );
 
   // Template for selection checkbox column
   const selectionTemplate = (props) => {
@@ -373,16 +364,16 @@ const ContributionGroups = () => {
 
   // Header template for the selection column (select all checkbox)
   const headerSelectionTemplate = () => {
-    const allSelected = filteredVariables.length > 0 &&
-                         filteredVariables.every(v => selectedVariables.includes(v.name));
-    const someSelected = filteredVariables.some(v => selectedVariables.includes(v.name)) && !allSelected;
+    const allSelected = filteredVariables.length > 0
+                         && filteredVariables.every((v) => selectedVariables.includes(v.name));
+    const someSelected = filteredVariables.some((v) => selectedVariables.includes(v.name)) && !allSelected;
 
     return (
       <input
         type="checkbox"
         className="form-checkbox h-4 w-4 text-blue-600 rounded"
         checked={allSelected}
-        ref={input => {
+        ref={(input) => {
           if (input) {
             input.indeterminate = someSelected;
           }
@@ -400,7 +391,7 @@ const ContributionGroups = () => {
     fields: ['name'],
     operator: 'contains',
     key: '',
-    ignoreCase: true
+    ignoreCase: true,
   };
 
   return (
@@ -415,7 +406,7 @@ const ContributionGroups = () => {
             </label>
             <DropDownListComponent
               id="model-select"
-              dataSource={models.map(m => ({ text: m.name, value: m.name }))}
+              dataSource={models.map((m) => ({ text: m.name, value: m.name }))}
               fields={{ text: 'text', value: 'value' }}
               value={selectedModel}
               change={handleModelChange}
@@ -470,7 +461,7 @@ const ContributionGroups = () => {
             <div
               className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"
               style={{ borderColor: currentColor }}
-            ></div>
+            />
             <p className="ml-2">Loading variables...</p>
           </div>
         ) : (
@@ -478,8 +469,8 @@ const ContributionGroups = () => {
             <GridComponent
               ref={gridRef}
               dataSource={filteredVariables}
-              allowPaging={true}
-              allowSorting={true}
+              allowPaging
+              allowSorting
               pageSettings={{ pageSize: 20 }}
               toolbar={toolbarOptions}
               searchSettings={searchSettings}
@@ -494,7 +485,7 @@ const ContributionGroups = () => {
                   headerTemplate={headerSelectionTemplate}
                   textAlign="Center"
                 />
-                <ColumnDirective field="name" headerText="Variable" width="200" isPrimaryKey={true} />
+                <ColumnDirective field="name" headerText="Variable" width="200" isPrimaryKey />
                 <ColumnDirective field="coefficient" headerText="Coefficient" width="120" format="N4" textAlign="Right" />
                 <ColumnDirective field="tStat" headerText="T-Stat" width="120" format="N4" textAlign="Right" />
                 <ColumnDirective field="transformation" headerText="Transformation" width="150" />
@@ -546,7 +537,7 @@ const ContributionGroups = () => {
                           id={`color-${group}`}
                           value={groupColors[group] || '#cccccc'}
                           mode="Palette"
-                          modeSwitcher={true}
+                          modeSwitcher
                           change={(args) => handleGroupColorChange(group, args.currentValue.hex)}
                         />
                       </div>

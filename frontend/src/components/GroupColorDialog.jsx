@@ -8,14 +8,14 @@ import { useStateContext } from '../contexts/ContextProvider';
 
 // Default colors for common groups
 const DEFAULT_COLORS = {
-  'Base': '#CCCCCC',      // Gray
-  'Media': '#4682B4',     // Steel Blue
-  'Price': '#FF0000',     // Red
-  'Promotion': '#FFA500', // Orange
-  'Seasonality': '#9370DB', // Medium Purple
-  'Weather': '#8B4513',   // Brown
-  'Competition': '#000000', // Black
-  'Other': '#808080'      // Dark Gray
+  Base: '#CCCCCC', // Gray
+  Media: '#4682B4', // Steel Blue
+  Price: '#FF0000', // Red
+  Promotion: '#FFA500', // Orange
+  Seasonality: '#9370DB', // Medium Purple
+  Weather: '#8B4513', // Brown
+  Competition: '#000000', // Black
+  Other: '#808080', // Dark Gray
 };
 
 const GroupColorDialog = ({ modelName, initialGroups = [], initialColors = {}, onClose, onSave }) => {
@@ -26,8 +26,8 @@ const GroupColorDialog = ({ modelName, initialGroups = [], initialColors = {}, o
   // Initialize colors with defaults or existing values
   useEffect(() => {
     const colors = {};
-    initialGroups.forEach(group => {
-      colors[group] = initialColors[group] || DEFAULT_COLORS[group] || '#' + Math.floor(Math.random()*16777215).toString(16);
+    initialGroups.forEach((group) => {
+      colors[group] = initialColors[group] || DEFAULT_COLORS[group] || `#${Math.floor(Math.random() * 16777215).toString(16)}`;
     });
     setGroupColors(colors);
     if (initialGroups.length > 0) {
@@ -40,7 +40,7 @@ const GroupColorDialog = ({ modelName, initialGroups = [], initialColors = {}, o
     if (selectedGroup) {
       setGroupColors({
         ...groupColors,
-        [selectedGroup]: args.currentValue.hex
+        [selectedGroup]: args.currentValue.hex,
       });
     }
   };
@@ -50,9 +50,9 @@ const GroupColorDialog = ({ modelName, initialGroups = [], initialColors = {}, o
       width="70%" // Make it take 70% of the screen width
       height="70%" // Make it take 70% of the screen height
       maxWidth="1200px" // Maximum width to avoid it being too wide on large screens
-      isModal={true}
-      showCloseIcon={true}
-      visible={true}
+      isModal
+      showCloseIcon
+      visible
       close={onClose}
       header="Set Group Colors"
       cssClass="group-color-dialog"
@@ -63,7 +63,7 @@ const GroupColorDialog = ({ modelName, initialGroups = [], initialColors = {}, o
           <h3 className="text-lg font-semibold mb-4">Contribution Groups</h3>
 
           <div className="space-y-2 max-h-[400px] overflow-y-auto">
-            {initialGroups.map(group => (
+            {initialGroups.map((group) => (
               <div
                 key={group}
                 className={`flex justify-between items-center p-3 rounded cursor-pointer ${selectedGroup === group ? 'bg-blue-100' : 'hover:bg-gray-100'}`}
@@ -73,7 +73,7 @@ const GroupColorDialog = ({ modelName, initialGroups = [], initialColors = {}, o
                 <div
                   className="w-6 h-6 rounded-full border border-gray-300"
                   style={{ backgroundColor: groupColors[group] || '#ccc' }}
-                ></div>
+                />
               </div>
             ))}
           </div>
@@ -86,7 +86,7 @@ const GroupColorDialog = ({ modelName, initialGroups = [], initialColors = {}, o
           {selectedGroup && (
             <>
               <div className="mb-4">
-                <div className="w-full h-12 rounded-md border" style={{ backgroundColor: groupColors[selectedGroup] }}></div>
+                <div className="w-full h-12 rounded-md border" style={{ backgroundColor: groupColors[selectedGroup] }} />
                 <div className="text-center mt-2 text-sm">{groupColors[selectedGroup]}</div>
               </div>
 
@@ -98,7 +98,7 @@ const GroupColorDialog = ({ modelName, initialGroups = [], initialColors = {}, o
                     id="inline-palette"
                     mode="Palette"
                     modeSwitcher={false}
-                    inline={true}
+                    inline
                     showButtons={false}
                     value={groupColors[selectedGroup]}
                     change={handleColorChange}
@@ -112,7 +112,7 @@ const GroupColorDialog = ({ modelName, initialGroups = [], initialColors = {}, o
                     id="inline-picker"
                     mode="Picker"
                     modeSwitcher={false}
-                    inline={true}
+                    inline
                     showButtons={false}
                     value={groupColors[selectedGroup]}
                     change={handleColorChange}

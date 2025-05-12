@@ -69,25 +69,22 @@ const VariableTesting = () => {
   };
 
   // Filter variables based on search term
-  const filteredVariables = variables.filter(v =>
-    v.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredVariables = variables.filter((v) => v.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   // Handle checkbox selection
   const handleCheckboxClick = (variableName) => {
-    setSelectedVariables(prev => {
+    setSelectedVariables((prev) => {
       if (prev.includes(variableName)) {
-        return prev.filter(v => v !== variableName);
-      } else {
-        return [...prev, variableName];
+        return prev.filter((v) => v !== variableName);
       }
+      return [...prev, variableName];
     });
   };
 
   // Handle select all checkbox
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedVariables(filteredVariables.map(v => v.name));
+      setSelectedVariables(filteredVariables.map((v) => v.name));
     } else {
       setSelectedVariables([]);
     }
@@ -113,26 +110,26 @@ const VariableTesting = () => {
     setLoading(true);
     try {
       // For each selected variable and each selected adstock rate, create a test entry
-      let allResults = [];
-      let allPromises = [];
+      const allResults = [];
+      const allPromises = [];
 
       // Convert percentages to decimals
-      const decimalAdstockRates = selectedAdstockRates.map(rate => rate / 100);
+      const decimalAdstockRates = selectedAdstockRates.map((rate) => rate / 100);
 
       // Test each variable with each adstock rate
       for (const variable of selectedVariables) {
         for (const adstockRate of decimalAdstockRates) {
           // Create a descriptive name for variables with adstock
-          const variableName = adstockRate > 0 ?
-            `${variable} (Adstock ${adstockRate * 100}%)` :
-            variable;
+          const variableName = adstockRate > 0
+            ? `${variable} (Adstock ${adstockRate * 100}%)`
+            : variable;
 
           // Test this variable with this adstock rate
           const promise = apiService.testVariables(
             selectedModel,
             [variable],
-            [adstockRate]
-          ).then(response => {
+            [adstockRate],
+          ).then((response) => {
             if (response.success && response.results && response.results.length > 0) {
               // Rename the variable to include adstock information
               const result = response.results[0];
@@ -164,64 +161,61 @@ const VariableTesting = () => {
 
   // Handle toggling adstock rate selection
   const handleAdstockRateToggle = (rate) => {
-    setSelectedAdstockRates(prev => {
+    setSelectedAdstockRates((prev) => {
       if (prev.includes(rate)) {
-        return prev.filter(r => r !== rate);
-      } else {
-        return [...prev, rate].sort((a, b) => a - b);
+        return prev.filter((r) => r !== rate);
       }
+      return [...prev, rate].sort((a, b) => a - b);
     });
   };
 
   // Render variable list with checkboxes
-  const renderVariableList = () => {
-    return (
-      <div>
-        <div className="flex items-center mb-2">
-          <input
-            type="checkbox"
-            className="form-checkbox h-4 w-4 text-blue-600"
-            checked={filteredVariables.length > 0 &&
-                    selectedVariables.length === filteredVariables.length}
-            onChange={handleSelectAll}
-            id="select-all-vars"
-          />
-          <label htmlFor="select-all-vars" className="ml-2 text-sm font-medium">
-            Select All
-          </label>
-        </div>
-
-        <div className="max-h-96 overflow-y-auto border border-gray-200 rounded">
-          {filteredVariables.length === 0 ? (
-            <div className="p-3 text-center text-gray-500">No variables found</div>
-          ) : (
-            <div className="divide-y divide-gray-200">
-              {filteredVariables.map(variable => (
-                <div key={variable.name} className="p-2 hover:bg-gray-100 flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`var-${variable.name}`}
-                    className="form-checkbox h-4 w-4 text-blue-600"
-                    checked={selectedVariables.includes(variable.name)}
-                    onChange={() => handleCheckboxClick(variable.name)}
-                  />
-                  <label
-                    htmlFor={`var-${variable.name}`}
-                    className="ml-2 text-sm cursor-pointer flex-1 truncate"
-                  >
-                    {variable.name}
-                  </label>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+  const renderVariableList = () => (
+    <div>
+      <div className="flex items-center mb-2">
+        <input
+          type="checkbox"
+          className="form-checkbox h-4 w-4 text-blue-600"
+          checked={filteredVariables.length > 0
+                    && selectedVariables.length === filteredVariables.length}
+          onChange={handleSelectAll}
+          id="select-all-vars"
+        />
+        <label htmlFor="select-all-vars" className="ml-2 text-sm font-medium">
+          Select All
+        </label>
       </div>
-    );
-  };
+
+      <div className="max-h-96 overflow-y-auto border border-gray-200 rounded">
+        {filteredVariables.length === 0 ? (
+          <div className="p-3 text-center text-gray-500">No variables found</div>
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {filteredVariables.map((variable) => (
+              <div key={variable.name} className="p-2 hover:bg-gray-100 flex items-center">
+                <input
+                  type="checkbox"
+                  id={`var-${variable.name}`}
+                  className="form-checkbox h-4 w-4 text-blue-600"
+                  checked={selectedVariables.includes(variable.name)}
+                  onChange={() => handleCheckboxClick(variable.name)}
+                />
+                <label
+                  htmlFor={`var-${variable.name}`}
+                  className="ml-2 text-sm cursor-pointer flex-1 truncate"
+                >
+                  {variable.name}
+                </label>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   // Format a grid cell based on value
-const formatCell = (field, value) => {
+  const formatCell = (field, value) => {
     // Coefficient formatting
     if (field === 'Coefficient') {
       const colorClass = value > 0 ? 'text-green-600' : value < 0 ? 'text-red-600' : '';
@@ -271,7 +265,7 @@ const formatCell = (field, value) => {
 
     // Default formatting
     return value;
-  }
+  };
 
   // Render test results grid
   const renderTestResultsGrid = () => {
@@ -303,8 +297,8 @@ const formatCell = (field, value) => {
       <div className="border border-gray-200 rounded-lg overflow-hidden">
         <GridComponent
           dataSource={testResults}
-          allowPaging={true}
-          allowSorting={true}
+          allowPaging
+          allowSorting
           pageSettings={{ pageSize: 10 }}
           toolbar={['Search']}
           width="100%"
@@ -403,7 +397,7 @@ const formatCell = (field, value) => {
                 </label>
                 <DropDownListComponent
                   id="model-select"
-                  dataSource={models.map(m => ({ text: m.name, value: m.name }))}
+                  dataSource={models.map((m) => ({ text: m.name, value: m.name }))}
                   fields={{ text: 'text', value: 'value' }}
                   value={selectedModel}
                   change={(e) => setSelectedModel(e.value)}
@@ -414,44 +408,44 @@ const formatCell = (field, value) => {
             </div>
 
             <div className="mb-4">
-  <div className="flex items-center mb-2">
-    <input
-      type="checkbox"
-      id="show-adstock"
-      className="form-checkbox h-4 w-4 text-blue-600"
-      checked={showAdstockOptions}
-      onChange={() => setShowAdstockOptions(!showAdstockOptions)}
-    />
-    <label htmlFor="show-adstock" className="ml-2 text-sm font-medium">
-      Show Adstock Options
-    </label>
-  </div>
+              <div className="flex items-center mb-2">
+                <input
+                  type="checkbox"
+                  id="show-adstock"
+                  className="form-checkbox h-4 w-4 text-blue-600"
+                  checked={showAdstockOptions}
+                  onChange={() => setShowAdstockOptions(!showAdstockOptions)}
+                />
+                <label htmlFor="show-adstock" className="ml-2 text-sm font-medium">
+                  Show Adstock Options
+                </label>
+              </div>
 
-  {showAdstockOptions && (
-    <div className="mt-2 p-3 border border-gray-200 rounded-md bg-white">
-      <p className="text-sm font-medium mb-2">Select Adstock Rates to Test:</p>
-      <div className="flex flex-wrap gap-2">
-        {adstockOptions.map(rate => (
-          <div key={rate} className="flex items-center">
-            <input
-              type="checkbox"
-              id={`adstock-${rate}`}
-              className="form-checkbox h-4 w-4 text-blue-600"
-              checked={selectedAdstockRates.includes(rate)}
-              onChange={() => handleAdstockRateToggle(rate)}
-            />
-            <label htmlFor={`adstock-${rate}`} className="ml-1 text-sm">
-              {rate}%
-            </label>
-          </div>
-        ))}
-      </div>
-      <p className="text-xs text-gray-500 mt-2">
-        Each variable will be tested with all selected adstock rates
-      </p>
-    </div>
-  )}
-</div>
+              {showAdstockOptions && (
+              <div className="mt-2 p-3 border border-gray-200 rounded-md bg-white">
+                <p className="text-sm font-medium mb-2">Select Adstock Rates to Test:</p>
+                <div className="flex flex-wrap gap-2">
+                  {adstockOptions.map((rate) => (
+                    <div key={rate} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={`adstock-${rate}`}
+                        className="form-checkbox h-4 w-4 text-blue-600"
+                        checked={selectedAdstockRates.includes(rate)}
+                        onChange={() => handleAdstockRateToggle(rate)}
+                      />
+                      <label htmlFor={`adstock-${rate}`} className="ml-1 text-sm">
+                        {rate}%
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Each variable will be tested with all selected adstock rates
+                </p>
+              </div>
+              )}
+            </div>
 
             <div className="mt-4">
               <ButtonComponent
@@ -459,7 +453,7 @@ const formatCell = (field, value) => {
                 style={{
                   backgroundColor: currentColor,
                   borderColor: currentColor,
-                  width: '100%'
+                  width: '100%',
                 }}
                 onClick={handleTestVariables}
                 disabled={selectedVariables.length === 0 || !selectedModel || loading}
@@ -478,7 +472,7 @@ const formatCell = (field, value) => {
                 <div
                   className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"
                   style={{ borderColor: currentColor }}
-                ></div>
+                />
                 <p className="ml-2">Testing variables...</p>
               </div>
             ) : (

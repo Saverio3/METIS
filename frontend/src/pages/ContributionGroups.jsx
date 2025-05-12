@@ -11,22 +11,22 @@ import {
   Toolbar,
   Edit,
   Sort,
-  Filter
+  Filter,
 } from '@syncfusion/ej2-react-grids';
 import {
-  DropDownListComponent
+  DropDownListComponent,
 } from '@syncfusion/ej2-react-dropdowns';
 import {
-  ColorPickerComponent
+  ColorPickerComponent,
 } from '@syncfusion/ej2-react-inputs';
 import {
-  ButtonComponent
+  ButtonComponent,
 } from '@syncfusion/ej2-react-buttons';
+import { FiSave, FiRefreshCw } from 'react-icons/fi';
 import { Header } from '../components';
 import { useStateContext } from '../contexts/ContextProvider';
 import apiService from '../services/api';
 import ErrorBoundary from '../components/ErrorBoundary';
-import { FiSave, FiRefreshCw } from 'react-icons/fi';
 
 const ContributionGroups = () => {
   const { currentColor } = useStateContext();
@@ -55,7 +55,7 @@ const ContributionGroups = () => {
   const adjustmentOptions = [
     { text: 'None', value: '' },
     { text: 'Min', value: 'Min' },
-    { text: 'Max', value: 'Max' }
+    { text: 'Max', value: 'Max' },
   ];
 
   // Load models on component mount
@@ -67,7 +67,7 @@ const ContributionGroups = () => {
   useEffect(() => {
     if (variables.length > 0) {
       const groups = {};
-      variables.forEach(variable => {
+      variables.forEach((variable) => {
         if (variable.Group) {
           groups[variable.Group] = true;
         }
@@ -95,12 +95,12 @@ const ContributionGroups = () => {
           fetchModelVariables(response.activeModel);
         }
       } else {
-        setError('Failed to load models: ' + response.error);
+        setError(`Failed to load models: ${response.error}`);
       }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching models:', error);
-      setError('Error loading models: ' + error.message);
+      setError(`Error loading models: ${error.message}`);
       setLoading(false);
     }
   };
@@ -121,13 +121,13 @@ const ContributionGroups = () => {
         const groupsResponse = await apiService.getContributionGroups(modelName);
 
         // Add Group and Adjustment properties if not present
-        const variablesWithGroups = response.variables.map(variable => {
+        const variablesWithGroups = response.variables.map((variable) => {
           // Check if we have saved group settings for this variable
           let group = 'Other';
           let adjustment = '';
 
-          if (groupsResponse.success && groupsResponse.groupSettings &&
-              groupsResponse.groupSettings[variable.name]) {
+          if (groupsResponse.success && groupsResponse.groupSettings
+              && groupsResponse.groupSettings[variable.name]) {
             group = groupsResponse.groupSettings[variable.name].Group || 'Other';
             adjustment = groupsResponse.groupSettings[variable.name].Adjustment || '';
           }
@@ -136,7 +136,7 @@ const ContributionGroups = () => {
             ...variable,
             Group: group,
             Adjustment: adjustment,
-            selected: false
+            selected: false,
           };
         });
 
@@ -146,13 +146,13 @@ const ContributionGroups = () => {
         // Also fetch group colors
         fetchGroupColors(modelName);
       } else {
-        setError('Failed to load model variables: ' + response.error);
+        setError(`Failed to load model variables: ${response.error}`);
       }
 
       setLoading(false);
     } catch (error) {
       console.error('Error fetching model variables:', error);
-      setError('Error loading model variables: ' + error.message);
+      setError(`Error loading model variables: ${error.message}`);
       setLoading(false);
     }
   };
@@ -183,12 +183,12 @@ const ContributionGroups = () => {
         setSuccess('Group colors saved successfully');
         setTimeout(() => setSuccess(null), 3000);
       } else {
-        setError('Failed to save group colors: ' + response.error);
+        setError(`Failed to save group colors: ${response.error}`);
       }
       setSaving(false);
     } catch (error) {
       console.error('Error saving group colors:', error);
-      setError('Error saving group colors: ' + error.message);
+      setError(`Error saving group colors: ${error.message}`);
       setSaving(false);
     }
   };
@@ -198,7 +198,7 @@ const ContributionGroups = () => {
     console.log(`Changing color for ${group} to ${color}`);
     const updatedColors = {
       ...groupColors,
-      [group]: color
+      [group]: color,
     };
     setGroupColors(updatedColors);
     saveGroupColors(updatedColors);
@@ -216,7 +216,7 @@ const ContributionGroups = () => {
   const handleAdjustmentChange = (variableName, value) => {
     if (selectedVariables.includes(variableName) && selectedVariables.length > 1) {
       // Bulk update for selected variables
-      const updatedVariables = variables.map(v => {
+      const updatedVariables = variables.map((v) => {
         if (selectedVariables.includes(v.name)) {
           return { ...v, Adjustment: value };
         }
@@ -227,9 +227,7 @@ const ContributionGroups = () => {
       setFilteredVariables(updatedVariables);
     } else {
       // Single variable update
-      const updatedVariables = variables.map(v =>
-        v.name === variableName ? { ...v, Adjustment: value } : v
-      );
+      const updatedVariables = variables.map((v) => (v.name === variableName ? { ...v, Adjustment: value } : v));
 
       setVariables(updatedVariables);
       setFilteredVariables(updatedVariables);
@@ -240,7 +238,7 @@ const ContributionGroups = () => {
   const handleGroupChange = (variableName, newValue) => {
     if (selectedVariables.includes(variableName) && selectedVariables.length > 1) {
       // Bulk update for selected variables
-      const updatedVariables = variables.map(v => {
+      const updatedVariables = variables.map((v) => {
         if (selectedVariables.includes(v.name)) {
           return { ...v, Group: newValue };
         }
@@ -251,9 +249,7 @@ const ContributionGroups = () => {
       setFilteredVariables(updatedVariables);
     } else {
       // Single variable update
-      const updatedVariables = variables.map(v =>
-        v.name === variableName ? { ...v, Group: newValue } : v
-      );
+      const updatedVariables = variables.map((v) => (v.name === variableName ? { ...v, Group: newValue } : v));
 
       setVariables(updatedVariables);
       setFilteredVariables(updatedVariables);
@@ -262,12 +258,11 @@ const ContributionGroups = () => {
 
   // Handle checkbox selection
   const handleCheckboxClick = (variableName) => {
-    setSelectedVariables(prev => {
+    setSelectedVariables((prev) => {
       if (prev.includes(variableName)) {
-        return prev.filter(name => name !== variableName);
-      } else {
-        return [...prev, variableName];
+        return prev.filter((name) => name !== variableName);
       }
+      return [...prev, variableName];
     });
   };
 
@@ -275,7 +270,7 @@ const ContributionGroups = () => {
   const handleSelectAll = (checked) => {
     if (checked) {
       // Select all visible variables
-      setSelectedVariables(filteredVariables.map(v => v.name));
+      setSelectedVariables(filteredVariables.map((v) => v.name));
     } else {
       // Clear selections
       setSelectedVariables([]);
@@ -295,10 +290,10 @@ const ContributionGroups = () => {
       // Create groupSettings object to send to API
       const groupSettings = {};
 
-      variables.forEach(variable => {
+      variables.forEach((variable) => {
         groupSettings[variable.name] = {
           Group: variable.Group || 'Other',
-          Adjustment: variable.Adjustment || ''
+          Adjustment: variable.Adjustment || '',
         };
       });
 
@@ -308,67 +303,63 @@ const ContributionGroups = () => {
         setSuccess('Contribution groups saved successfully');
         setTimeout(() => setSuccess(null), 3000); // Clear success message after 3 seconds
       } else {
-        setError('Failed to save contribution groups: ' + response.error);
+        setError(`Failed to save contribution groups: ${response.error}`);
       }
 
       setSaving(false);
     } catch (error) {
       console.error('Error saving contribution groups:', error);
-      setError('Error saving contribution groups: ' + error.message);
+      setError(`Error saving contribution groups: ${error.message}`);
       setSaving(false);
     }
   };
 
   // Dropdown template for the Adjustment column
-  const adjustmentTemplate = (props) => {
-    return (
-      <DropDownListComponent
-        id={`adjustment-${props.name}`}
-        dataSource={adjustmentOptions}
-        fields={{ text: 'text', value: 'value' }}
-        value={props.Adjustment}
-        change={(e) => handleAdjustmentChange(props.name, e.value)}
-        placeholder="Select"
-        popupHeight="240px"
-        style={{ width: '100%' }}
-      />
-    );
-  };
+  const adjustmentTemplate = (props) => (
+    <DropDownListComponent
+      id={`adjustment-${props.name}`}
+      dataSource={adjustmentOptions}
+      fields={{ text: 'text', value: 'value' }}
+      value={props.Adjustment}
+      change={(e) => handleAdjustmentChange(props.name, e.value)}
+      placeholder="Select"
+      popupHeight="240px"
+      style={{ width: '100%' }}
+    />
+  );
 
   // Group column editable cell template
-  const groupTemplate = (props) => {
-    return (
-      <div
-        className="group-cell-editable cursor-pointer p-2 rounded hover:bg-gray-100"
-        onClick={(e) => {
-          // Create an editable input field when clicked
-          const cell = e.currentTarget;
-          cell.innerHTML = '';
+  const groupTemplate = (props) => (
+    <div
+      className="group-cell-editable cursor-pointer p-2 rounded hover:bg-gray-100"
+      onClick={(e) => {
+        // Create an editable input field when clicked
+        const cell = e.currentTarget;
+        cell.innerHTML = '';
 
-          const input = document.createElement('input');
-          input.type = 'text';
-          input.className = 'w-full p-1 border rounded';
-          input.value = props.Group;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'w-full p-1 border rounded';
+        input.value = props.Group;
 
-          input.onblur = () => {
-            handleGroupChange(props.name, input.value);
-            cell.innerHTML = input.value;
-          };
+        input.onblur = () => {
+          handleGroupChange(props.name, input.value);
+          cell.innerHTML = input.value;
+        };
 
-          input.onkeydown = (keyEvent) => {
-            if (keyEvent.key === 'Enter') {
-              input.blur();
-            }
-          };
+        input.onkeydown = (keyEvent) => {
+          if (keyEvent.key === 'Enter') {
+            input.blur();
+          }
+        };
 
-          cell.appendChild(input);
-          input.focus();
-        }}
-      >
-        {props.Group}
-      </div>
-    );
-  };
+        cell.appendChild(input);
+        input.focus();
+      }}
+    >
+      {props.Group}
+    </div>
+  );
 
   // Template for selection checkbox column
   const selectionTemplate = (props) => {
@@ -386,16 +377,16 @@ const ContributionGroups = () => {
 
   // Header template for the selection column (select all checkbox)
   const headerSelectionTemplate = () => {
-    const allSelected = filteredVariables.length > 0 &&
-                         filteredVariables.every(v => selectedVariables.includes(v.name));
-    const someSelected = filteredVariables.some(v => selectedVariables.includes(v.name)) && !allSelected;
+    const allSelected = filteredVariables.length > 0
+                         && filteredVariables.every((v) => selectedVariables.includes(v.name));
+    const someSelected = filteredVariables.some((v) => selectedVariables.includes(v.name)) && !allSelected;
 
     return (
       <input
         type="checkbox"
         className="form-checkbox h-4 w-4 text-blue-600 rounded"
         checked={allSelected}
-        ref={input => {
+        ref={(input) => {
           if (input) {
             input.indeterminate = someSelected;
           }
@@ -413,7 +404,7 @@ const ContributionGroups = () => {
     fields: ['name'],
     operator: 'contains',
     key: '',
-    ignoreCase: true
+    ignoreCase: true,
   };
 
   return (
@@ -428,7 +419,7 @@ const ContributionGroups = () => {
             </label>
             <DropDownListComponent
               id="model-select"
-              dataSource={models.map(m => ({ text: m.name, value: m.name }))}
+              dataSource={models.map((m) => ({ text: m.name, value: m.name }))}
               fields={{ text: 'text', value: 'value' }}
               value={selectedModel}
               change={handleModelChange}
@@ -446,7 +437,7 @@ const ContributionGroups = () => {
               disabled={!selectedModel || loading}
             >
               <div className="flex items-center">
-              <FiRefreshCw className="mr-1" />
+                <FiRefreshCw className="mr-1" />
                 REFRESH
               </div>
             </ButtonComponent>
@@ -478,85 +469,85 @@ const ContributionGroups = () => {
           </div>
         )}
 
-<div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-  {/* Contribution Groups Table - Takes 3/4 of the space */}
-  <div className="lg:col-span-3">
-    {loading ? (
-      <div className="flex items-center justify-center h-64">
-        <div
-          className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"
-          style={{ borderColor: currentColor }}
-        ></div>
-        <p className="ml-2">Loading variables...</p>
-      </div>
-    ) : (
-      <div className="overflow-x-auto">
-        <GridComponent
-          ref={gridRef}
-          dataSource={filteredVariables}
-          allowPaging={true}
-          allowSorting={true}
-          pageSettings={{ pageSize: 20 }}
-          toolbar={toolbarOptions}
-          searchSettings={searchSettings}
-          height="500px"
-        >
-          <ColumnsDirective>
-            <ColumnDirective
-              field="selection"
-              headerText=""
-              width="50"
-              template={selectionTemplate}
-              headerTemplate={headerSelectionTemplate}
-              textAlign="Center"
-            />
-            <ColumnDirective field="name" headerText="Variable" width="200" isPrimaryKey={true} />
-            <ColumnDirective field="coefficient" headerText="Coefficient" width="110" format="N4" textAlign="Right" />
-            <ColumnDirective field="tStat" headerText="T-Stat" width="110" format="N4" textAlign="Right" />
-            <ColumnDirective field="transformation" headerText="Transform" width="120" />
-            <ColumnDirective
-              field="Group"
-              headerText="Group"
-              width="130"
-              template={groupTemplate}
-            />
-            <ColumnDirective
-              field="Adjustment"
-              headerText="Adjustment"
-              width="130"
-              template={adjustmentTemplate}
-            />
-          </ColumnsDirective>
-          <Inject services={[Page, Sort, Filter, Toolbar, Edit, Search]} />
-        </GridComponent>
-      </div>
-    )}
-  </div>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          {/* Contribution Groups Table - Takes 3/4 of the space */}
+          <div className="lg:col-span-3">
+            {loading ? (
+              <div className="flex items-center justify-center h-64">
+                <div
+                  className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"
+                  style={{ borderColor: currentColor }}
+                />
+                <p className="ml-2">Loading variables...</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <GridComponent
+                  ref={gridRef}
+                  dataSource={filteredVariables}
+                  allowPaging
+                  allowSorting
+                  pageSettings={{ pageSize: 20 }}
+                  toolbar={toolbarOptions}
+                  searchSettings={searchSettings}
+                  height="500px"
+                >
+                  <ColumnsDirective>
+                    <ColumnDirective
+                      field="selection"
+                      headerText=""
+                      width="50"
+                      template={selectionTemplate}
+                      headerTemplate={headerSelectionTemplate}
+                      textAlign="Center"
+                    />
+                    <ColumnDirective field="name" headerText="Variable" width="200" isPrimaryKey />
+                    <ColumnDirective field="coefficient" headerText="Coefficient" width="110" format="N4" textAlign="Right" />
+                    <ColumnDirective field="tStat" headerText="T-Stat" width="110" format="N4" textAlign="Right" />
+                    <ColumnDirective field="transformation" headerText="Transform" width="120" />
+                    <ColumnDirective
+                      field="Group"
+                      headerText="Group"
+                      width="130"
+                      template={groupTemplate}
+                    />
+                    <ColumnDirective
+                      field="Adjustment"
+                      headerText="Adjustment"
+                      width="130"
+                      template={adjustmentTemplate}
+                    />
+                  </ColumnsDirective>
+                  <Inject services={[Page, Sort, Filter, Toolbar, Edit, Search]} />
+                </GridComponent>
+              </div>
+            )}
+          </div>
 
-  {/* Group Colors Section - Takes 1/4 of the space */}
-  <div className="lg:col-span-1">
-    <div className="bg-white rounded-lg shadow p-4 h-full">
-      <h3 className="text-lg font-semibold mb-4">Group Colors</h3>
-      <div className="overflow-y-auto max-h-[448px]"> {/* Match the table height to the grid */}
-        <table className="w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50 sticky top-0">
-            <tr>
-              <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Group
-              </th>
-              <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Color
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {uniqueGroups.map((group, index) => (
-              <tr key={group} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {group}
-                </td>
-                <td className="px-3 py-3 whitespace-nowrap">
-                  <div className="flex items-center">
+          {/* Group Colors Section - Takes 1/4 of the space */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg shadow p-4 h-full">
+              <h3 className="text-lg font-semibold mb-4">Group Colors</h3>
+              <div className="overflow-y-auto max-h-[448px]"> {/* Match the table height to the grid */}
+                <table className="w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50 sticky top-0">
+                    <tr>
+                      <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Group
+                      </th>
+                      <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Color
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {uniqueGroups.map((group, index) => (
+                      <tr key={group} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {group}
+                        </td>
+                        <td className="px-3 py-3 whitespace-nowrap">
+                          <div className="flex items-center">
                     <ColorPickerComponent
                       id={`color-${group}`}
                       value={groupColors[group] || '#cccccc'}
@@ -570,33 +561,33 @@ const ContributionGroups = () => {
                       style={{ backgroundColor: groupColors[group] || '#cccccc' }}
                     />
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
 
-<div className="mt-6 p-4 bg-gray-50 rounded-lg">
-  <h3 className="text-lg font-medium mb-2">About Contribution Groups</h3>
-  <p className="text-sm text-gray-600 mb-2">
-    Contribution groups help organize variables for decomposition analysis. Variables in the same group will be combined when showing contribution charts.
-  </p>
-  <p className="text-sm text-gray-600 mb-2">
-    <span className="font-medium">Group:</span> Assign a descriptive group name (e.g., "Media", "Price", "Promotion", "Seasonality").
-  </p>
-  <p className="text-sm text-gray-600">
-    <span className="font-medium">Adjustment:</span> Optional adjustment to apply during decomposition:
-    <ul className="list-disc ml-8 mt-1">
-      <li><span className="font-medium">Min:</span> Subtract the minimum contribution from each time period</li>
-      <li><span className="font-medium">Max:</span> Subtract the maximum contribution from each time period</li>
-      <li><span className="font-medium">None:</span> Use the contribution as is</li>
-    </ul>
-  </p>
-</div>
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <h3 className="text-lg font-medium mb-2">About Contribution Groups</h3>
+          <p className="text-sm text-gray-600 mb-2">
+            Contribution groups help organize variables for decomposition analysis. Variables in the same group will be combined when showing contribution charts.
+          </p>
+          <p className="text-sm text-gray-600 mb-2">
+            <span className="font-medium">Group:</span> Assign a descriptive group name (e.g., "Media", "Price", "Promotion", "Seasonality").
+          </p>
+          <p className="text-sm text-gray-600">
+            <span className="font-medium">Adjustment:</span> Optional adjustment to apply during decomposition:
+            <ul className="list-disc ml-8 mt-1">
+              <li><span className="font-medium">Min:</span> Subtract the minimum contribution from each time period</li>
+              <li><span className="font-medium">Max:</span> Subtract the maximum contribution from each time period</li>
+              <li><span className="font-medium">None:</span> Use the contribution as is</li>
+            </ul>
+          </p>
+        </div>
       </ErrorBoundary>
     </div>
   );

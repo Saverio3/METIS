@@ -3,13 +3,10 @@ import { Link, NavLink } from 'react-router-dom';
 import { SiShopware } from 'react-icons/si';
 import { MdOutlineCancel } from 'react-icons/md';
 import { TooltipComponent } from '@syncfusion/ej2-react-popups';
-import { FiHome, FiUploadCloud, FiTool, FiSettings, FiFolder, FiCheckSquare, FiBarChart2, FiLayers, FiPieChart, FiActivity, FiEdit } from 'react-icons/fi';
-import { AiOutlineCalendar, AiOutlineBlock } from 'react-icons/ai';
-import { PiBezierCurve } from "react-icons/pi";
-import { BsKanban } from 'react-icons/bs';
-import { GoTasklist } from "react-icons/go";
-import { IoMdContacts } from 'react-icons/io';
-import { RiContactsLine, RiStockLine } from 'react-icons/ri';
+import { FiUploadCloud, FiTool, FiSettings, FiFolder, FiCheckSquare, FiBarChart2, FiLayers, FiPieChart, FiActivity } from 'react-icons/fi';
+import { AiOutlineCalendar } from 'react-icons/ai';
+import { PiBezierCurve } from 'react-icons/pi';
+import { GoTasklist } from 'react-icons/go';
 
 import { useStateContext } from '../contexts/ContextProvider';
 

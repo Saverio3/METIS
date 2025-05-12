@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { loadStripe } from '@stripe/stripe-js';
+import { FiUser, FiLock, FiCreditCard } from 'react-icons/fi';
+import { BsShieldLock } from 'react-icons/bs';
 import apiService from '../services/api';
 import { Header } from '../components';
 import { useStateContext } from '../contexts/ContextProvider';
-import { FiUser, FiLock, FiCreditCard } from 'react-icons/fi';
-import { BsShieldLock } from 'react-icons/bs';
 import avatar from '../data/avatar.jpg';
 
 const AccountSettings = () => {
@@ -35,7 +35,7 @@ const AccountSettings = () => {
     status: 'loading',
     plan: '',
     current_period_end: null,
-    trial_end: null
+    trial_end: null,
   });
   const [isLoadingSubscription, setIsLoadingSubscription] = useState(false);
 
@@ -94,8 +94,8 @@ const AccountSettings = () => {
         lastName,
         unsafeMetadata: {
           ...user.unsafeMetadata,
-          companyName
-        }
+          companyName,
+        },
       });
 
       setSaveSuccess(true);
@@ -139,7 +139,7 @@ const AccountSettings = () => {
         if (stripe) {
           // Redirect to Stripe checkout
           await stripe.redirectToCheckout({
-            sessionId: response.id
+            sessionId: response.id,
           });
         }
       } else {
@@ -160,7 +160,7 @@ const AccountSettings = () => {
       <div className="m-2 md:m-10 mt-24 p-2 md:p-10 bg-white dark:bg-secondary-dark-bg rounded-3xl">
         <Header category="Account" title="Account Settings" />
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" style={{ borderColor: currentColor }}></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" style={{ borderColor: currentColor }} />
           <p className="ml-2">Loading account settings...</p>
         </div>
       </div>
@@ -437,7 +437,7 @@ const AccountSettings = () => {
 
               {isLoadingSubscription ? (
                 <div className="flex justify-center items-center h-48">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" style={{ borderColor: currentColor }}></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" style={{ borderColor: currentColor }} />
                   <p className="ml-2">Loading subscription details...</p>
                 </div>
               ) : (
@@ -463,7 +463,8 @@ const AccountSettings = () => {
                           : subscriptionStatus.status === 'trialing'
                             ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
                             : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-                      }`}>
+                      }`}
+                      >
                         {subscriptionStatus.status === 'active'
                           ? 'Active'
                           : subscriptionStatus.status === 'trialing'
@@ -475,7 +476,7 @@ const AccountSettings = () => {
                     <div className="mt-4">
                       <div className="flex items-center mb-2">
                         <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                         </svg>
                         <span className="text-sm dark:text-gray-300">
                           Unlimited models
@@ -484,7 +485,7 @@ const AccountSettings = () => {
 
                       <div className="flex items-center mb-2">
                         <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                         </svg>
                         <span className="text-sm dark:text-gray-300">
                           Full suite of model diagnostics
@@ -493,7 +494,7 @@ const AccountSettings = () => {
 
                       <div className="flex items-center">
                         <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                         </svg>
                         <span className="text-sm dark:text-gray-300">Priority support</span>
                       </div>
@@ -519,19 +520,19 @@ const AccountSettings = () => {
                           <ul className="mt-4 space-y-2">
                             <li className="flex items-start">
                               <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                               </svg>
                               <span className="text-sm dark:text-gray-300">Unlimited models</span>
                             </li>
                             <li className="flex items-start">
                               <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                               </svg>
                               <span className="text-sm dark:text-gray-300">Full analytics suite</span>
                             </li>
                             <li className="flex items-start">
                               <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                               </svg>
                               <span className="text-sm dark:text-gray-300">Email support</span>
                             </li>
@@ -570,25 +571,25 @@ const AccountSettings = () => {
                           <ul className="mt-4 space-y-2">
                             <li className="flex items-start">
                               <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                               </svg>
                               <span className="text-sm dark:text-gray-300">Unlimited models</span>
                             </li>
                             <li className="flex items-start">
                               <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                               </svg>
                               <span className="text-sm dark:text-gray-300">Full analytics suite</span>
                             </li>
                             <li className="flex items-start">
                               <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                               </svg>
                               <span className="text-sm dark:text-gray-300">Priority support</span>
                             </li>
                             <li className="flex items-start">
                               <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                               </svg>
                               <span className="text-sm dark:text-gray-300">Advanced customization</span>
                             </li>
@@ -621,25 +622,25 @@ const AccountSettings = () => {
                           <ul className="mt-4 space-y-2">
                             <li className="flex items-start">
                               <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                               </svg>
                               <span className="text-sm dark:text-gray-300">Unlimited models</span>
                             </li>
                             <li className="flex items-start">
                               <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                               </svg>
                               <span className="text-sm dark:text-gray-300">Full analytics suite</span>
                             </li>
                             <li className="flex items-start">
                               <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                               </svg>
                               <span className="text-sm dark:text-gray-300">Dedicated support</span>
                             </li>
                             <li className="flex items-start">
                               <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                               </svg>
                               <span className="text-sm dark:text-gray-300">Custom reporting</span>
                             </li>
@@ -692,12 +693,12 @@ const AccountSettings = () => {
                             <tr>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">May 1, 2025</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                {subscriptionStatus.plan === '1-Month' ? 'Monthly Plan' :
-                                 subscriptionStatus.plan === '3-Month' ? 'Quarterly Plan' : 'Semi-Annual Plan'}
+                                {subscriptionStatus.plan === '1-Month' ? 'Monthly Plan'
+                                  : subscriptionStatus.plan === '3-Month' ? 'Quarterly Plan' : 'Semi-Annual Plan'}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                {subscriptionStatus.plan === '1-Month' ? '$1,500.00' :
-                                 subscriptionStatus.plan === '3-Month' ? '$3,750.00' : '$6,000.00'}
+                                {subscriptionStatus.plan === '1-Month' ? '$1,500.00'
+                                  : subscriptionStatus.plan === '3-Month' ? '$3,750.00' : '$6,000.00'}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">

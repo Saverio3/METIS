@@ -28,11 +28,10 @@ const SubscriptionGuard = ({ children }) => {
       setIsLoading(true);
       const response = await apiService.getSubscriptionStatus(user.id);
 
-      console.log("Subscription check response:", response);
+      console.log('Subscription check response:', response);
 
-      if (response.success &&
-          response.subscription) {
-
+      if (response.success
+          && response.subscription) {
         // Check for active subscription
         const status = response.subscription.status || '';
         console.log(`User subscription status: ${status}`);
@@ -70,9 +69,10 @@ const SubscriptionGuard = ({ children }) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2"
-          style={{ borderColor: currentColor }}>
-        </div>
+        <div
+          className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2"
+          style={{ borderColor: currentColor }}
+        />
         <p className="ml-2">Verifying subscription...</p>
       </div>
     );

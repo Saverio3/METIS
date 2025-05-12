@@ -8,17 +8,16 @@ import {
   Sort,
   Filter,
   Toolbar,
-  Search
+  Search,
 } from '@syncfusion/ej2-react-grids';
 import {
-  DropDownListComponent
+  DropDownListComponent,
 } from '@syncfusion/ej2-react-dropdowns';
 import {
-  ButtonComponent
-} from '@syncfusion/ej2-react-buttons';
-import {
-  RadioButtonComponent
-} from '@syncfusion/ej2-react-buttons';
+  ButtonComponent,
+
+  RadioButtonComponent } from '@syncfusion/ej2-react-buttons';
+
 import {
   ChartComponent,
   SeriesCollectionDirective,
@@ -28,7 +27,7 @@ import {
   Category,
   Tooltip,
   DataLabel,
-  LineSeries
+  LineSeries,
 } from '@syncfusion/ej2-react-charts';
 import { FiSettings, FiRefreshCw, FiBarChart2, FiPlus, FiDatabase } from 'react-icons/fi';
 import { MdOutlineShowChart, MdOutlineTimeline } from 'react-icons/md';
@@ -75,7 +74,7 @@ const CurveTesting = () => {
       if (response.success) {
         setModels(response.models);
         if (response.activeModel && response.models.length > 0) {
-          const activeModel = response.models.find(m => m.name === response.activeModel);
+          const activeModel = response.models.find((m) => m.name === response.activeModel);
           if (activeModel) {
             setSelectedModel(activeModel.name);
           }
@@ -97,9 +96,7 @@ const CurveTesting = () => {
         setVariables(response.variables);
 
         // Filter variables for testing (typically numeric, not already in model)
-        const testableVars = response.variables.filter(v =>
-          v.type === 'NUMERIC' && !v.isTransformed
-        );
+        const testableVars = response.variables.filter((v) => v.type === 'NUMERIC' && !v.isTransformed);
 
         setAvailableVariables(testableVars);
       } else {
@@ -122,70 +119,69 @@ const CurveTesting = () => {
     setShowChart(false);
   };
 
-
-useEffect(() => {
-  if (testPerformed && !loading && curveResults.length > 0) {
+  useEffect(() => {
+    if (testPerformed && !loading && curveResults.length > 0) {
     // Add event listeners for sorting after the component updates with results
-    const headers = document.querySelectorAll('.sortable-header');
-    headers.forEach(header => {
-      header.addEventListener('click', () => handleSort(header.dataset.column));
-    });
-
-    return () => {
-      // Cleanup event listeners
-      headers.forEach(header => {
-        header.removeEventListener('click', () => handleSort(header.dataset.column));
+      const headers = document.querySelectorAll('.sortable-header');
+      headers.forEach((header) => {
+        header.addEventListener('click', () => handleSort(header.dataset.column));
       });
-    };
-  }
-}, [testPerformed, loading, curveResults.length]);
 
-// Add this function to handle sorting
-const handleSort = (column) => {
-  const headers = document.querySelectorAll('.sortable-header');
-  let sortDirection = 'asc';
+      return () => {
+      // Cleanup event listeners
+        headers.forEach((header) => {
+          header.removeEventListener('click', () => handleSort(header.dataset.column));
+        });
+      };
+    }
+  }, [testPerformed, loading, curveResults.length]);
 
-  // Check if we're already sorting by this column
-  const header = document.querySelector(`[data-column="${column}"]`);
-  if (header.classList.contains('sort-asc')) {
-    sortDirection = 'desc';
-    header.classList.remove('sort-asc');
-    header.classList.add('sort-desc');
-  } else if (header.classList.contains('sort-desc')) {
-    sortDirection = 'asc';
-    header.classList.remove('sort-desc');
-    header.classList.add('sort-asc');
-  } else {
+  // Add this function to handle sorting
+  const handleSort = (column) => {
+    const headers = document.querySelectorAll('.sortable-header');
+    let sortDirection = 'asc';
+
+    // Check if we're already sorting by this column
+    const header = document.querySelector(`[data-column="${column}"]`);
+    if (header.classList.contains('sort-asc')) {
+      sortDirection = 'desc';
+      header.classList.remove('sort-asc');
+      header.classList.add('sort-desc');
+    } else if (header.classList.contains('sort-desc')) {
+      sortDirection = 'asc';
+      header.classList.remove('sort-desc');
+      header.classList.add('sort-asc');
+    } else {
     // Reset all headers
-    headers.forEach(h => {
-      h.classList.remove('sort-asc', 'sort-desc');
+      headers.forEach((h) => {
+        h.classList.remove('sort-asc', 'sort-desc');
+      });
+      header.classList.add('sort-asc');
+    }
+
+    // Sort the data
+    const sorted = [...curveResults].sort((a, b) => {
+      const aValue = a[column];
+      const bValue = b[column];
+
+      // Handle numeric sorting
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+
+      // Handle string sorting
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortDirection === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      return 0;
     });
-    header.classList.add('sort-asc');
-  }
 
-  // Sort the data
-  const sorted = [...curveResults].sort((a, b) => {
-    let aValue = a[column];
-    let bValue = b[column];
-
-    // Handle numeric sorting
-    if (typeof aValue === 'number' && typeof bValue === 'number') {
-      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
-    }
-
-    // Handle string sorting
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return sortDirection === 'asc'
-        ? aValue.localeCompare(bValue)
-        : bValue.localeCompare(aValue);
-    }
-
-    return 0;
-  });
-
-  // Update the results
-  setCurveResults(sorted);
-};
+    // Update the results
+    setCurveResults(sorted);
+  };
 
   // Handle variable selection change
   const handleVariableChange = (e) => {
@@ -226,7 +222,7 @@ const handleSort = (column) => {
       const response = await apiService.testCurves(
         selectedModel,
         selectedVariable,
-        curveType
+        curveType,
       );
 
       if (response.success) {
@@ -235,7 +231,7 @@ const handleSort = (column) => {
         setSelectedCurves([]);
         setShowChart(false);
       } else {
-        alert('Failed to test curves: ' + response.error);
+        alert(`Failed to test curves: ${response.error}`);
       }
 
       setLoading(false);
@@ -248,12 +244,11 @@ const handleSort = (column) => {
 
   // Handle curve selection
   const handleCurveSelect = (curveId) => {
-    setSelectedCurves(prev => {
+    setSelectedCurves((prev) => {
       if (prev.includes(curveId)) {
-        return prev.filter(id => id !== curveId);
-      } else {
-        return [...prev, curveId];
+        return prev.filter((id) => id !== curveId);
       }
+      return [...prev, curveId];
     });
   };
 
@@ -272,14 +267,14 @@ const handleSort = (column) => {
         selectedModel,
         selectedVariable,
         curveType,
-        selectedCurves.map(id => curveResults[id])
+        selectedCurves.map((id) => curveResults[id]),
       );
 
       if (response.success) {
         setChartData(response.chartData);
         setShowChart(true);
       } else {
-        alert('Failed to generate chart: ' + response.error);
+        alert(`Failed to generate chart: ${response.error}`);
       }
 
       setLoading(false);
@@ -305,7 +300,7 @@ const handleSort = (column) => {
         selectedModel,
         selectedVariable,
         curveType,
-        selectedCurves.map(id => curveResults[id])
+        selectedCurves.map((id) => curveResults[id]),
       );
 
       if (response.success) {
@@ -313,7 +308,7 @@ const handleSort = (column) => {
         // Refresh variables list
         fetchVariables();
       } else {
-        alert('Failed to create curve variables: ' + response.error);
+        alert(`Failed to create curve variables: ${response.error}`);
       }
 
       setLoading(false);
@@ -339,13 +334,13 @@ const handleSort = (column) => {
         selectedModel,
         selectedVariable,
         curveType,
-        selectedCurves.map(id => curveResults[id])
+        selectedCurves.map((id) => curveResults[id]),
       );
 
       if (response.success) {
         alert(`Successfully added ${response.addedCurves.length} curve variables to the model`);
       } else {
-        alert('Failed to add curves to model: ' + response.error);
+        alert(`Failed to add curves to model: ${response.error}`);
       }
 
       setLoading(false);
@@ -415,7 +410,7 @@ const handleSort = (column) => {
           <div
             className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"
             style={{ borderColor: currentColor }}
-          ></div>
+          />
           <p className="ml-2">Loading curve results...</p>
         </div>
       );
@@ -443,12 +438,12 @@ const handleSort = (column) => {
       coefficient: curve.coefficient,
       tStat: curve.tStat,
       rSquaredIncrease: curve.rSquaredIncrease,
-      switchPoint: curve.switchPoint
+      switchPoint: curve.switchPoint,
     }));
 
     return (
       <div className="border border-gray-200 rounded-lg overflow-hidden">
-        <div className="overflow-y-auto" style={{ maxHeight: "400px" }}>
+        <div className="overflow-y-auto" style={{ maxHeight: '400px' }}>
           <table className="min-w-full divide-y divide-gray-200" id="curve-results-table">
             <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
@@ -600,7 +595,7 @@ const handleSort = (column) => {
               title: `Original ${selectedVariable} Value`,
               titleStyle: { size: '14px', fontWeight: '500' },
               labelStyle: { size: '12px' },
-              majorGridLines: { width: 0 }
+              majorGridLines: { width: 0 },
             }}
             primaryYAxis={{
               title: 'Transformed Value',
@@ -608,7 +603,7 @@ const handleSort = (column) => {
               labelStyle: { size: '12px' },
               minimum: 0,
               maximum: 1.05,
-              interval: 0.2
+              interval: 0.2,
             }}
             chartArea={{ border: { width: 0 } }}
             tooltip={{ enable: true }}
@@ -671,7 +666,7 @@ const handleSort = (column) => {
               </label>
               <DropDownListComponent
                 id="model-select"
-                dataSource={models.map(m => ({ text: m.name, value: m.name }))}
+                dataSource={models.map((m) => ({ text: m.name, value: m.name }))}
                 fields={{ text: 'text', value: 'value' }}
                 value={selectedModel}
                 change={handleModelChange}
@@ -687,7 +682,7 @@ const handleSort = (column) => {
               </label>
               <DropDownListComponent
                 id="variable-select"
-                dataSource={availableVariables.map(v => ({ text: v.name, value: v.name }))}
+                dataSource={availableVariables.map((v) => ({ text: v.name, value: v.name }))}
                 fields={{ text: 'text', value: 'value' }}
                 value={selectedVariable}
                 change={handleVariableChange}

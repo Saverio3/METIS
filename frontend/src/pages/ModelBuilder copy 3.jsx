@@ -8,25 +8,25 @@ import {
   Sort,
   Filter,
   Toolbar,
-  Search
+  Search,
 } from '@syncfusion/ej2-react-grids';
 import {
   TabComponent,
   TabItemDirective,
-  TabItemsDirective
+  TabItemsDirective,
 } from '@syncfusion/ej2-react-navigations';
 import {
   DatePickerComponent,
-  DateRangePickerComponent
+  DateRangePickerComponent,
 } from '@syncfusion/ej2-react-calendars';
 import {
-  DropDownListComponent
+  DropDownListComponent,
 } from '@syncfusion/ej2-react-dropdowns';
 import {
-  ButtonComponent
+  ButtonComponent,
 } from '@syncfusion/ej2-react-buttons';
 import {
-  DialogComponent
+  DialogComponent,
 } from '@syncfusion/ej2-react-popups';
 import {
   FiDatabase,
@@ -37,7 +37,7 @@ import {
   FiCalendar,
   FiCheckCircle,
   FiXCircle,
-  FiFilter
+  FiFilter,
 } from 'react-icons/fi';
 import { Header } from '../components';
 import { useStateContext } from '../contexts/ContextProvider';
@@ -111,7 +111,7 @@ const ModelBuilder = () => {
       if (response.success) {
         setModels(response.models);
         if (response.activeModel && response.models.length > 0) {
-          const activeModel = response.models.find(m => m.name === response.activeModel);
+          const activeModel = response.models.find((m) => m.name === response.activeModel);
           if (activeModel) {
             setSelectedModel(activeModel);
             fetchModelVariables(activeModel.name);
@@ -177,7 +177,7 @@ const ModelBuilder = () => {
   // Handle model selection change
   const handleModelChange = (e) => {
     const modelName = e.value;
-    const selectedModelObj = models.find(m => m.name === modelName);
+    const selectedModelObj = models.find((m) => m.name === modelName);
     if (selectedModelObj) {
       setSelectedModel(selectedModelObj);
       fetchModelVariables(modelName);
@@ -205,7 +205,7 @@ const ModelBuilder = () => {
       setLoading(true);
       setPreviewMode('add'); // Set mode to 'add'
 
-      const adstockRatesArray = variablesToAdd.map(v => adstockRates[v] || 0);
+      const adstockRatesArray = variablesToAdd.map((v) => adstockRates[v] || 0);
 
       // Get fixed coefficient data for preview
       const fixedCoeffs = {};
@@ -226,7 +226,7 @@ const ModelBuilder = () => {
         selectedModel.name,
         variablesToAdd,
         adstockRatesArray,
-        fixedCoeffs  // Pass the fixed coefficients
+        fixedCoeffs, // Pass the fixed coefficients
       );
 
       if (response.success) {
@@ -234,7 +234,7 @@ const ModelBuilder = () => {
         setShowComparisonDialog(true);
         setPendingChanges(true);
       } else {
-        alert('Failed to preview changes: ' + response.error);
+        alert(`Failed to preview changes: ${response.error}`);
       }
 
       setLoading(false);
@@ -262,7 +262,7 @@ const ModelBuilder = () => {
 
       const response = await apiService.previewRemoveVariables(
         selectedModel.name,
-        variablesToRemove
+        variablesToRemove,
       );
 
       if (response.success) {
@@ -270,7 +270,7 @@ const ModelBuilder = () => {
         setShowComparisonDialog(true);
         setPendingChanges(true);
       } else {
-        alert('Failed to preview changes: ' + response.error);
+        alert(`Failed to preview changes: ${response.error}`);
       }
 
       setLoading(false);
@@ -294,13 +294,13 @@ const ModelBuilder = () => {
 
     try {
       setLoading(true);
-      const adstockRatesArray = variablesToAdd.map(v => adstockRates[v] || 0);
+      const adstockRatesArray = variablesToAdd.map((v) => adstockRates[v] || 0);
 
       // Call the API to add variables
       const response = await apiService.addVariables(
         selectedModel.name,
         variablesToAdd,
-        adstockRatesArray
+        adstockRatesArray,
       );
 
       if (response.success) {
@@ -326,7 +326,7 @@ const ModelBuilder = () => {
           await apiService.fixCoefficients(
             selectedModel.name,
             fixedCoeffs,
-            false // not preview, apply changes
+            false, // not preview, apply changes
           );
         }
 
@@ -347,123 +347,123 @@ const ModelBuilder = () => {
       }
     } catch (error) {
       console.error('Error details:', error);
-      const errorMessage = error.response ?
-        `Server error: ${error.response.status} - ${JSON.stringify(error.response.data)}` :
-        error.message;
+      const errorMessage = error.response
+        ? `Server error: ${error.response.status} - ${JSON.stringify(error.response.data)}`
+        : error.message;
       alert(`Error adding variables: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
   };
 
-// This is your working function that actually removes variables
-const handleRemoveVariables = async () => {
+  // This is your working function that actually removes variables
+  const handleRemoveVariables = async () => {
   // Early validation checks
-  if (variablesToRemove.length === 0) {
-    alert('Please select variables to remove');
-    return;
-  }
-  if (!selectedModel) {
-    alert('Please select a model first');
-    return;
-  }
-  try {
-    setLoading(true);
-    console.log(`Removing variables from model ${selectedModel.name}:`, variablesToRemove);
-    // Call API to remove variables
-    const response = await apiService.removeVariables(
-      selectedModel.name,
-      variablesToRemove
-    );
-    console.log("Remove variables response:", response);
-    if (response.success) {
+    if (variablesToRemove.length === 0) {
+      alert('Please select variables to remove');
+      return;
+    }
+    if (!selectedModel) {
+      alert('Please select a model first');
+      return;
+    }
+    try {
+      setLoading(true);
+      console.log(`Removing variables from model ${selectedModel.name}:`, variablesToRemove);
+      // Call API to remove variables
+      const response = await apiService.removeVariables(
+        selectedModel.name,
+        variablesToRemove,
+      );
+      console.log('Remove variables response:', response);
+      if (response.success) {
       // Reset selection
-      setVariablesToRemove([]);
+        setVariablesToRemove([]);
 
-      // Reset dialog states
-      setShowComparisonDialog(false);
-      setPendingChanges(false);
-      setModelComparison(null);
+        // Reset dialog states
+        setShowComparisonDialog(false);
+        setPendingChanges(false);
+        setModelComparison(null);
 
-      // Fetch model variables again to update the UI with the current state
-      await fetchModelVariables(selectedModel.name);
+        // Fetch model variables again to update the UI with the current state
+        await fetchModelVariables(selectedModel.name);
 
-      // Success message
-      alert('Variables removed successfully!');
-    } else {
-      alert(`Failed to remove variables: ${response.error || 'Unknown server error'}`);
+        // Success message
+        alert('Variables removed successfully!');
+      } else {
+        alert(`Failed to remove variables: ${response.error || 'Unknown server error'}`);
+      }
+    } catch (error) {
+      console.error('Error details:', error);
+      // Get more detailed error information if available
+      const errorMessage = error.response
+        ? `Server error: ${error.response.status} - ${JSON.stringify(error.response.data)}`
+        : error.message;
+
+      alert(`Error removing variables: ${errorMessage}`);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Error details:', error);
-    // Get more detailed error information if available
-    const errorMessage = error.response ?
-      `Server error: ${error.response.status} - ${JSON.stringify(error.response.data)}` :
-      error.message;
+  };
 
-    alert(`Error removing variables: ${errorMessage}`);
-  } finally {
-    setLoading(false);
-  }
-};
-
-const handleApplyRemoveVariables = async () => {
-  if (variablesToRemove.length === 0) {
-    alert('No variables selected for removal');
-    return;
-  }
-
-  if (!selectedModel) {
-    alert('No model selected');
-    return;
-  }
-
-  try {
-    setLoading(true);
-    console.log(`Removing variables from model ${selectedModel.name}:`, variablesToRemove);
-
-    const response = await apiService.removeVariables(
-      selectedModel.name,
-      variablesToRemove
-    );
-
-    console.log("Remove variables response:", response);
-
-    if (response.success) {
-      setVariablesToRemove([]);
-      setShowComparisonDialog(false);
-      setPendingChanges(false);
-      setModelComparison(null);
-      await fetchModelVariables(selectedModel.name);
-      alert('Variables removed successfully!');
-    } else {
-      alert(`Failed to remove variables: ${response.error || 'Unknown server error'}`);
+  const handleApplyRemoveVariables = async () => {
+    if (variablesToRemove.length === 0) {
+      alert('No variables selected for removal');
+      return;
     }
-  } catch (error) {
-    console.error('Error details:', error);
-    const errorMessage = error.response ?
-      `Server error: ${error.response.status} - ${JSON.stringify(error.response.data)}` :
-      error.message;
-    alert(`Error removing variables: ${errorMessage}`);
-  } finally {
-    setLoading(false);
-  }
-};
 
-const handleApplyChanges = async () => {
-  if (previewMode === 'add') {
-    await handleApplyAddVariables();
-  } else if (previewMode === 'remove') {
-    await handleApplyRemoveVariables();
-  }
-};
+    if (!selectedModel) {
+      alert('No model selected');
+      return;
+    }
 
-// Handle cancel changes
-const handleCancelChanges = () => {
-  console.log("Cancel button clicked");
-  setShowComparisonDialog(false);
-  setPendingChanges(false);
-  setModelComparison(null);
-};
+    try {
+      setLoading(true);
+      console.log(`Removing variables from model ${selectedModel.name}:`, variablesToRemove);
+
+      const response = await apiService.removeVariables(
+        selectedModel.name,
+        variablesToRemove,
+      );
+
+      console.log('Remove variables response:', response);
+
+      if (response.success) {
+        setVariablesToRemove([]);
+        setShowComparisonDialog(false);
+        setPendingChanges(false);
+        setModelComparison(null);
+        await fetchModelVariables(selectedModel.name);
+        alert('Variables removed successfully!');
+      } else {
+        alert(`Failed to remove variables: ${response.error || 'Unknown server error'}`);
+      }
+    } catch (error) {
+      console.error('Error details:', error);
+      const errorMessage = error.response
+        ? `Server error: ${error.response.status} - ${JSON.stringify(error.response.data)}`
+        : error.message;
+      alert(`Error removing variables: ${errorMessage}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApplyChanges = async () => {
+    if (previewMode === 'add') {
+      await handleApplyAddVariables();
+    } else if (previewMode === 'remove') {
+      await handleApplyRemoveVariables();
+    }
+  };
+
+  // Handle cancel changes
+  const handleCancelChanges = () => {
+    console.log('Cancel button clicked');
+    setShowComparisonDialog(false);
+    setPendingChanges(false);
+    setModelComparison(null);
+  };
 
   // Handle clone model
   const handleCloneModel = async () => {
@@ -482,7 +482,7 @@ const handleCancelChanges = () => {
 
       const response = await apiService.cloneModel(
         selectedModel.name,
-        newModelName
+        newModelName,
       );
 
       if (response.success) {
@@ -505,290 +505,290 @@ const handleCancelChanges = () => {
         // Show success message
         alert(`Model "${selectedModel.name}" cloned successfully as "${newModelName}"`);
       } else {
-        alert('Failed to clone model: ' + response.error);
+        alert(`Failed to clone model: ${response.error}`);
       }
 
       setLoading(false);
     } catch (error) {
       console.error('Error cloning model:', error);
       setLoading(false);
-      alert('Error cloning model: ' + error.message);
+      alert(`Error cloning model: ${error.message}`);
     }
   };
 
   // Add this function to fetch fixed coefficients
-const fetchFixedCoefficients = async (modelName) => {
-  try {
-    const response = await apiService.getFixedCoefficients(modelName);
-    if (response.success) {
-      setFixedCoefficients(response.fixedCoefficients || {});
-    } else {
-      console.warn('Failed to load fixed coefficients:', response.error);
+  const fetchFixedCoefficients = async (modelName) => {
+    try {
+      const response = await apiService.getFixedCoefficients(modelName);
+      if (response.success) {
+        setFixedCoefficients(response.fixedCoefficients || {});
+      } else {
+        console.warn('Failed to load fixed coefficients:', response.error);
+        setFixedCoefficients({});
+      }
+    } catch (error) {
+      console.error('Error fetching fixed coefficients:', error);
       setFixedCoefficients({});
     }
-  } catch (error) {
-    console.error('Error fetching fixed coefficients:', error);
-    setFixedCoefficients({});
-  }
-};
+  };
 
-// Add this function to handle showing the fix coefficient dialog
-const handleShowFixCoefficients = () => {
-  if (!variablesToRemove || variablesToRemove.length === 0) {
-    alert('Please select variables to fix coefficients for');
-    return;
-  }
+  // Add this function to handle showing the fix coefficient dialog
+  const handleShowFixCoefficients = () => {
+    if (!variablesToRemove || variablesToRemove.length === 0) {
+      alert('Please select variables to fix coefficients for');
+      return;
+    }
 
-  if (!modelVariables || modelVariables.length === 0) {
-    alert('No variables in model to fix');
-    return;
-  }
+    if (!modelVariables || modelVariables.length === 0) {
+      alert('No variables in model to fix');
+      return;
+    }
 
-  try {
+    try {
     // Initialize custom coefficients with current values
-    const initialCustomCoeffs = {};
-    variablesToRemove.forEach(varName => {
+      const initialCustomCoeffs = {};
+      variablesToRemove.forEach((varName) => {
       // Find current coefficient from model variables
-      const variable = modelVariables.find(v => v.name === varName);
-      if (variable && variable.coefficient !== undefined) {
-        initialCustomCoeffs[varName] = variable.coefficient;
-      } else {
-        initialCustomCoeffs[varName] = 0; // Default to 0 if not found
-      }
-    });
+        const variable = modelVariables.find((v) => v.name === varName);
+        if (variable && variable.coefficient !== undefined) {
+          initialCustomCoeffs[varName] = variable.coefficient;
+        } else {
+          initialCustomCoeffs[varName] = 0; // Default to 0 if not found
+        }
+      });
 
-    // First update all the required state
-    setCustomCoefficients(initialCustomCoeffs);
-    setVariablesToFix([...variablesToRemove]); // Create a new array to avoid reference issues
-    setFixCoeffPreview(null); // Reset preview
+      // First update all the required state
+      setCustomCoefficients(initialCustomCoeffs);
+      setVariablesToFix([...variablesToRemove]); // Create a new array to avoid reference issues
+      setFixCoeffPreview(null); // Reset preview
 
-    // Then show the dialog, after a slight timeout to ensure state is updated
-    setTimeout(() => {
-      setShowFixCoefficientDialog(true);
-    }, 50);
-  } catch (error) {
-    console.error('Error preparing fix coefficients dialog:', error);
-    alert('An error occurred while preparing the dialog');
-  }
-};
+      // Then show the dialog, after a slight timeout to ensure state is updated
+      setTimeout(() => {
+        setShowFixCoefficientDialog(true);
+      }, 50);
+    } catch (error) {
+      console.error('Error preparing fix coefficients dialog:', error);
+      alert('An error occurred while preparing the dialog');
+    }
+  };
 
-// Add this function to handle coefficient input change
-const handleCoeffInputChange = (varName, value) => {
-  try {
+  // Add this function to handle coefficient input change
+  const handleCoeffInputChange = (varName, value) => {
+    try {
     // Safely convert to number, default to 0 if invalid
-    const numericValue = parseFloat(value) || 0;
+      const numericValue = parseFloat(value) || 0;
 
-    setCustomCoefficients(prev => ({
-      ...prev,
-      [varName]: numericValue
-    }));
-  } catch (error) {
-    console.error('Error updating coefficient value:', error);
+      setCustomCoefficients((prev) => ({
+        ...prev,
+        [varName]: numericValue,
+      }));
+    } catch (error) {
+      console.error('Error updating coefficient value:', error);
     // If there's an error, keep the previous value but don't crash
-  }
-};
+    }
+  };
 
-// Add this function to preview fixed coefficients
-const handlePreviewFixedCoefficients = async () => {
-  if (!selectedModel) {
-    alert('Please select a model first');
-    return;
-  }
-
-  if (!variablesToFix || variablesToFix.length === 0) {
-    alert('No variables selected to fix coefficients');
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    // Prepare data for API - safely handle missing or invalid state
-    const fixedCoeffs = {};
-    variablesToFix.forEach(varName => {
-      if (customCoefficients && customCoefficients[varName] !== undefined) {
-        fixedCoeffs[varName] = customCoefficients[varName];
-      }
-    });
-
-    if (Object.keys(fixedCoeffs).length === 0) {
-      alert('No valid coefficient values provided');
-      setLoading(false);
+  // Add this function to preview fixed coefficients
+  const handlePreviewFixedCoefficients = async () => {
+    if (!selectedModel) {
+      alert('Please select a model first');
       return;
     }
 
-    console.log('Sending fixed coefficients preview request:', {
-      modelName: selectedModel.name,
-      fixedCoefficients: fixedCoeffs
-    });
-
-    // Call API with preview flag
-    const response = await apiService.fixCoefficients(
-      selectedModel.name,
-      fixedCoeffs,
-      true // preview only
-    );
-
-    console.log('Preview response:', response);
-
-    if (response && response.success) {
-      setFixCoeffPreview(response);
-      setPendingChanges(true);
-    } else {
-      const errorMsg = response ? response.error : 'Unknown error';
-      alert('Failed to preview changes: ' + errorMsg);
-    }
-  } catch (error) {
-    console.error('Error previewing fixed coefficients:', error);
-    alert('Error previewing changes: ' + (error.message || 'Unknown error'));
-  } finally {
-    setLoading(false);
-  }
-};
-
-// Add this function to apply fixed coefficients
-const handleApplyFixedCoefficients = async () => {
-  if (!selectedModel) {
-    alert('Please select a model first');
-    return;
-  }
-
-  if (!variablesToFix || variablesToFix.length === 0) {
-    alert('No variables selected to fix coefficients');
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    // Prepare data for API - safely handle missing or invalid state
-    const fixedCoeffs = {};
-    variablesToFix.forEach(varName => {
-      if (customCoefficients && customCoefficients[varName] !== undefined) {
-        fixedCoeffs[varName] = customCoefficients[varName];
-      }
-    });
-
-    if (Object.keys(fixedCoeffs).length === 0) {
-      alert('No valid coefficient values provided');
-      setLoading(false);
+    if (!variablesToFix || variablesToFix.length === 0) {
+      alert('No variables selected to fix coefficients');
       return;
     }
 
-    console.log('Sending fixed coefficients apply request:', {
-      modelName: selectedModel.name,
-      fixedCoefficients: fixedCoeffs
-    });
+    try {
+      setLoading(true);
 
-    // Call API to apply changes
-    const response = await apiService.fixCoefficients(
-      selectedModel.name,
-      fixedCoeffs,
-      false // not preview, apply changes
-    );
+      // Prepare data for API - safely handle missing or invalid state
+      const fixedCoeffs = {};
+      variablesToFix.forEach((varName) => {
+        if (customCoefficients && customCoefficients[varName] !== undefined) {
+          fixedCoeffs[varName] = customCoefficients[varName];
+        }
+      });
 
-    console.log('Apply response:', response);
+      if (Object.keys(fixedCoeffs).length === 0) {
+        alert('No valid coefficient values provided');
+        setLoading(false);
+        return;
+      }
 
-    if (response && response.success) {
-      // Close the dialog and reset state in the correct order
-      setShowFixCoefficientDialog(false);
+      console.log('Sending fixed coefficients preview request:', {
+        modelName: selectedModel.name,
+        fixedCoefficients: fixedCoeffs,
+      });
 
-      // Use setTimeout to prevent state updates on unmounted components
-      setTimeout(() => {
-        setVariablesToFix([]);
-        setCustomCoefficients({});
-        setFixCoeffPreview(null);
-        setPendingChanges(false);
+      // Call API with preview flag
+      const response = await apiService.fixCoefficients(
+        selectedModel.name,
+        fixedCoeffs,
+        true, // preview only
+      );
 
-        // Refresh model variables after a short delay
-        setTimeout(() => {
-          fetchModelVariables(selectedModel.name);
-        }, 100);
-      }, 100);
+      console.log('Preview response:', response);
 
-      alert('Coefficients fixed successfully!');
-    } else {
-      alert('Failed to apply fixed coefficients: ' + (response ? response.error : 'Unknown error'));
+      if (response && response.success) {
+        setFixCoeffPreview(response);
+        setPendingChanges(true);
+      } else {
+        const errorMsg = response ? response.error : 'Unknown error';
+        alert(`Failed to preview changes: ${errorMsg}`);
+      }
+    } catch (error) {
+      console.error('Error previewing fixed coefficients:', error);
+      alert(`Error previewing changes: ${error.message || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Error applying fixed coefficients:', error);
-    alert('Error applying fixed coefficients: ' + (error.message || 'Unknown error'));
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
-// Add this function to unfix coefficients
-const handleUnfixCoefficients = async () => {
-  if (!selectedModel) {
-    alert('Please select a model first');
-    return;
-  }
-
-  if (!variablesToFix || variablesToFix.length === 0) {
-    alert('No variables selected to unfix coefficients');
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    console.log('Sending unfix coefficients request:', {
-      modelName: selectedModel.name,
-      unfixVariables: variablesToFix
-    });
-
-    // Call API to unfix selected variables
-    const response = await apiService.fixCoefficients(
-      selectedModel.name,
-      { unset: variablesToFix },
-      false // not preview, apply changes
-    );
-
-    console.log('Unfix response:', response);
-
-    if (response && response.success) {
-      // Close the dialog and reset state in the correct order
-      setShowFixCoefficientDialog(false);
-
-      // Use setTimeout to prevent state updates on unmounted components
-      setTimeout(() => {
-        setVariablesToFix([]);
-        setCustomCoefficients({});
-        setFixCoeffPreview(null);
-        setPendingChanges(false);
-
-        // Refresh model variables after a short delay
-        setTimeout(() => {
-          fetchModelVariables(selectedModel.name);
-        }, 100);
-      }, 100);
-
-      alert('Coefficients unfixed successfully!');
-    } else {
-      alert('Failed to unfix coefficients: ' + (response ? response.error : 'Unknown error'));
+  // Add this function to apply fixed coefficients
+  const handleApplyFixedCoefficients = async () => {
+    if (!selectedModel) {
+      alert('Please select a model first');
+      return;
     }
-  } catch (error) {
-    console.error('Error unfixing coefficients:', error);
-    alert('Error unfixing coefficients: ' + (error.message || 'Unknown error'));
-  } finally {
-    setLoading(false);
-  }
-};
 
-const handleCoeffTypeChange = (variableName, value) => {
-  setVariableCoeffTypes(prev => ({
-    ...prev,
-    [variableName]: value
-  }));
-};
+    if (!variablesToFix || variablesToFix.length === 0) {
+      alert('No variables selected to fix coefficients');
+      return;
+    }
 
-const handleCoeffValueChange = (variableName, value) => {
-  setVariableCoeffValues(prev => ({
-    ...prev,
-    [variableName]: value
-  }));
-};
+    try {
+      setLoading(true);
+
+      // Prepare data for API - safely handle missing or invalid state
+      const fixedCoeffs = {};
+      variablesToFix.forEach((varName) => {
+        if (customCoefficients && customCoefficients[varName] !== undefined) {
+          fixedCoeffs[varName] = customCoefficients[varName];
+        }
+      });
+
+      if (Object.keys(fixedCoeffs).length === 0) {
+        alert('No valid coefficient values provided');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Sending fixed coefficients apply request:', {
+        modelName: selectedModel.name,
+        fixedCoefficients: fixedCoeffs,
+      });
+
+      // Call API to apply changes
+      const response = await apiService.fixCoefficients(
+        selectedModel.name,
+        fixedCoeffs,
+        false, // not preview, apply changes
+      );
+
+      console.log('Apply response:', response);
+
+      if (response && response.success) {
+      // Close the dialog and reset state in the correct order
+        setShowFixCoefficientDialog(false);
+
+        // Use setTimeout to prevent state updates on unmounted components
+        setTimeout(() => {
+          setVariablesToFix([]);
+          setCustomCoefficients({});
+          setFixCoeffPreview(null);
+          setPendingChanges(false);
+
+          // Refresh model variables after a short delay
+          setTimeout(() => {
+            fetchModelVariables(selectedModel.name);
+          }, 100);
+        }, 100);
+
+        alert('Coefficients fixed successfully!');
+      } else {
+        alert(`Failed to apply fixed coefficients: ${response ? response.error : 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error applying fixed coefficients:', error);
+      alert(`Error applying fixed coefficients: ${error.message || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Add this function to unfix coefficients
+  const handleUnfixCoefficients = async () => {
+    if (!selectedModel) {
+      alert('Please select a model first');
+      return;
+    }
+
+    if (!variablesToFix || variablesToFix.length === 0) {
+      alert('No variables selected to unfix coefficients');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      console.log('Sending unfix coefficients request:', {
+        modelName: selectedModel.name,
+        unfixVariables: variablesToFix,
+      });
+
+      // Call API to unfix selected variables
+      const response = await apiService.fixCoefficients(
+        selectedModel.name,
+        { unset: variablesToFix },
+        false, // not preview, apply changes
+      );
+
+      console.log('Unfix response:', response);
+
+      if (response && response.success) {
+      // Close the dialog and reset state in the correct order
+        setShowFixCoefficientDialog(false);
+
+        // Use setTimeout to prevent state updates on unmounted components
+        setTimeout(() => {
+          setVariablesToFix([]);
+          setCustomCoefficients({});
+          setFixCoeffPreview(null);
+          setPendingChanges(false);
+
+          // Refresh model variables after a short delay
+          setTimeout(() => {
+            fetchModelVariables(selectedModel.name);
+          }, 100);
+        }, 100);
+
+        alert('Coefficients unfixed successfully!');
+      } else {
+        alert(`Failed to unfix coefficients: ${response ? response.error : 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error unfixing coefficients:', error);
+      alert(`Error unfixing coefficients: ${error.message || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCoeffTypeChange = (variableName, value) => {
+    setVariableCoeffTypes((prev) => ({
+      ...prev,
+      [variableName]: value,
+    }));
+  };
+
+  const handleCoeffValueChange = (variableName, value) => {
+    setVariableCoeffValues((prev) => ({
+      ...prev,
+      [variableName]: value,
+    }));
+  };
 
   // Handle filter date range
   const handleFilterDateRange = async () => {
@@ -812,7 +812,7 @@ const handleCoeffValueChange = (variableName, value) => {
       const response = await apiService.filterModel(
         selectedModel.name,
         startDate,
-        endDate
+        endDate,
       );
 
       if (response.success) {
@@ -826,14 +826,14 @@ const handleCoeffValueChange = (variableName, value) => {
         // Show success message
         alert(`Model data filtered to date range: ${startDate.split('T')[0]} to ${endDate.split('T')[0]}`);
       } else {
-        alert('Failed to filter model: ' + response.error);
+        alert(`Failed to filter model: ${response.error}`);
       }
 
       setLoading(false);
     } catch (error) {
       console.error('Error filtering model:', error);
       setLoading(false);
-      alert('Error filtering model: ' + error.message);
+      alert(`Error filtering model: ${error.message}`);
     }
   };
 
@@ -842,93 +842,91 @@ const handleCoeffValueChange = (variableName, value) => {
 
     // Filter variables that are numeric and not transformed
     const kpis = allVariables
-      .filter(v => v.type === 'NUMERIC' && !v.isTransformed)
-      .map(v => v.name);
+      .filter((v) => v.type === 'NUMERIC' && !v.isTransformed)
+      .map((v) => v.name);
 
     setAvailableKpis(kpis);
   };
 
   // Add this useEffect
-useEffect(() => {
-  fetchAvailableKpis();
-}, [allVariables]);
+  useEffect(() => {
+    fetchAvailableKpis();
+  }, [allVariables]);
 
-// Add this function to create a new model
-const handleCreateNewModel = async () => {
-  if (!newModelNameForCreate || newModelNameForCreate.trim() === '') {
-    alert('Please enter a name for the new model');
-    return;
-  }
-
-  if (!newModelKpi) {
-    alert('Please select a KPI variable');
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    const response = await apiService.createModel(
-      newModelNameForCreate,
-      newModelKpi
-    );
-
-    if (response.success) {
-      // Refresh models list
-      await fetchModels();
-
-      // Select the new model
-      setSelectedModel({
-        name: newModelNameForCreate,
-        kpi: newModelKpi,
-      });
-
-      // Close dialog and reset inputs
-      setShowCreateModelDialog(false);
-      setNewModelNameForCreate('');
-      setNewModelKpi('');
-
-      // Show success message
-      alert(`New model "${newModelNameForCreate}" created successfully with KPI "${newModelKpi}"`);
-    } else {
-      alert('Failed to create model: ' + response.error);
+  // Add this function to create a new model
+  const handleCreateNewModel = async () => {
+    if (!newModelNameForCreate || newModelNameForCreate.trim() === '') {
+      alert('Please enter a name for the new model');
+      return;
     }
 
-    setLoading(false);
-  } catch (error) {
-    console.error('Error creating model:', error);
-    setLoading(false);
-    alert('Error creating model: ' + error.message);
-  }
-};
+    if (!newModelKpi) {
+      alert('Please select a KPI variable');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await apiService.createModel(
+        newModelNameForCreate,
+        newModelKpi,
+      );
+
+      if (response.success) {
+      // Refresh models list
+        await fetchModels();
+
+        // Select the new model
+        setSelectedModel({
+          name: newModelNameForCreate,
+          kpi: newModelKpi,
+        });
+
+        // Close dialog and reset inputs
+        setShowCreateModelDialog(false);
+        setNewModelNameForCreate('');
+        setNewModelKpi('');
+
+        // Show success message
+        alert(`New model "${newModelNameForCreate}" created successfully with KPI "${newModelKpi}"`);
+      } else {
+        alert(`Failed to create model: ${response.error}`);
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error('Error creating model:', error);
+      setLoading(false);
+      alert(`Error creating model: ${error.message}`);
+    }
+  };
 
   // Handle variable selection for adding
   const handleVariableToAddSelect = (variable) => {
-    setVariablesToAdd(prev => {
+    setVariablesToAdd((prev) => {
       if (prev.includes(variable)) {
-        return prev.filter(v => v !== variable);
-      } else {
-        return [...prev, variable];
+        return prev.filter((v) => v !== variable);
       }
+      return [...prev, variable];
     });
   };
 
   // Handle variable selection for removing
   const handleVariableToRemoveSelect = (variable) => {
-    setVariablesToRemove(prev => {
+    setVariablesToRemove((prev) => {
       if (prev.includes(variable)) {
-        return prev.filter(v => v !== variable);
-      } else {
-        return [...prev, variable];
+        return prev.filter((v) => v !== variable);
       }
+      return [...prev, variable];
     });
   };
 
   // Handle adstock rate change
   const handleAdstockRateChange = (variable, rate) => {
-    setAdstockRates(prev => ({
+    setAdstockRates((prev) => ({
       ...prev,
-      [variable]: rate / 100
+      [variable]: rate / 100,
     }));
   };
 
@@ -936,17 +934,15 @@ const handleCreateNewModel = async () => {
   const getAvailableVariables = () => {
     if (!selectedModel || !modelVariables.length) return allVariables;
 
-    const currentVarNames = modelVariables.map(v => v.name);
-    return allVariables.filter(v => !currentVarNames.includes(v.name));
+    const currentVarNames = modelVariables.map((v) => v.name);
+    return allVariables.filter((v) => !currentVarNames.includes(v.name));
   };
 
   // Apply search filter to variables
   const filterVariablesBySearch = (variables) => {
     if (!searchVariablesText) return variables;
 
-    return variables.filter(v =>
-      v.name.toLowerCase().includes(searchVariablesText.toLowerCase())
-    );
+    return variables.filter((v) => v.name.toLowerCase().includes(searchVariablesText.toLowerCase()));
   };
 
   // Format cell value for the model variables grid
@@ -1044,18 +1040,20 @@ const handleCreateNewModel = async () => {
     return value;
   };
 
-  useEffect(() => {
+  useEffect(
+    () =>
     // This cleanup function will run when the component unmounts
-    return () => {
+      () => {
       // Reset all dialog-related state to prevent updates on unmounted components
-      setShowFixCoefficientDialog(false);
-      setVariablesToFix([]);
-      setCustomCoefficients({});
-      setFixCoeffPreview(null);
-      setShowComparisonDialog(false);
-      setModelComparison(null);
-    };
-  }, []);
+        setShowFixCoefficientDialog(false);
+        setVariablesToFix([]);
+        setCustomCoefficients({});
+        setFixCoeffPreview(null);
+        setShowComparisonDialog(false);
+        setModelComparison(null);
+      },
+    [],
+  );
 
   // Update the close handler for the dialog
   const handleCloseFixCoefficientDialog = () => {
@@ -1090,7 +1088,7 @@ const handleCreateNewModel = async () => {
           <div
             className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"
             style={{ borderColor: currentColor }}
-          ></div>
+          />
           <p className="ml-2">Loading model variables...</p>
         </div>
       );
@@ -1160,7 +1158,7 @@ const handleCreateNewModel = async () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {modelVariables
-                .filter(variable => !searchVariablesText || variable.name.toLowerCase().includes(searchVariablesText.toLowerCase()))
+                .filter((variable) => !searchVariablesText || variable.name.toLowerCase().includes(searchVariablesText.toLowerCase()))
                 .map((variable) => (
                   <tr key={variable.name} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -1301,11 +1299,10 @@ const handleCreateNewModel = async () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-            {availableVariables.map((variable) => {
-              const isSelected = variablesToAdd.includes(variable.name);
-              // Safely access coeffType with fallback to 'floating'
-              const coeffType = (variableCoeffTypes && variableCoeffTypes[variable.name]) || 'floating';
-
+              {availableVariables.map((variable) => {
+                const isSelected = variablesToAdd.includes(variable.name);
+                // Safely access coeffType with fallback to 'floating'
+                const coeffType = (variableCoeffTypes && variableCoeffTypes[variable.name]) || 'floating';
 
                 return (
                   <tr key={variable.name} className="hover:bg-gray-50">
@@ -1335,7 +1332,7 @@ const handleCreateNewModel = async () => {
                           value={(adstockRates[variable.name] || 0) * 100}
                           onChange={(e) => handleAdstockRateChange(
                             variable.name,
-                            parseInt(e.target.value, 10) || 0
+                            parseInt(e.target.value, 10) || 0,
                           )}
                           disabled={!isSelected}
                         />
@@ -1454,17 +1451,17 @@ const handleCreateNewModel = async () => {
         </div>
 
         <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end">
-        <ButtonComponent
-  cssClass="e-danger"
-  style={{ backgroundColor: '#dc3545', borderColor: '#dc3545' }}
-  onClick={handleShowRemovePreview}  // Changed from handleRemoveVariables to handleShowRemovePreview
-  disabled={variablesToRemove.length === 0 || loading}
->
-  <div className="flex items-center gap-1">
-    <FiMinus className="mr-1" />
-    Remove Selected Variables
-  </div>
-</ButtonComponent>
+          <ButtonComponent
+            cssClass="e-danger"
+            style={{ backgroundColor: '#dc3545', borderColor: '#dc3545' }}
+            onClick={handleShowRemovePreview} // Changed from handleRemoveVariables to handleShowRemovePreview
+            disabled={variablesToRemove.length === 0 || loading}
+          >
+            <div className="flex items-center gap-1">
+              <FiMinus className="mr-1" />
+              Remove Selected Variables
+            </div>
+          </ButtonComponent>
         </div>
       </div>
     );
@@ -1501,7 +1498,7 @@ const handleCreateNewModel = async () => {
                 % Change
               </th>
             </tr>
-            </thead>
+          </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {modelComparison.map((row) => (
               <tr key={row.variable} className="hover:bg-gray-50">
@@ -1541,83 +1538,82 @@ const handleCreateNewModel = async () => {
 
         {/* Top section with model selection and actions */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
-  <div className="md:col-span-4">
-    <div className="p-4 bg-gray-50 rounded-lg">
-      <h3 className="text-lg font-semibold mb-2">Model Selection</h3>
-      <div className="mb-3">
-        <DropDownListComponent
-          id="model-select"
-          dataSource={models.map(m => ({ text: m.name, value: m.name }))}
-          fields={{ text: 'text', value: 'value' }}
-          value={selectedModel ? selectedModel.name : ''}
-          change={handleModelChange}
-          placeholder="Select model"
-          style={{ width: '100%' }}
-        />
-      </div>
-    </div>
-  </div>
+          <div className="md:col-span-4">
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <h3 className="text-lg font-semibold mb-2">Model Selection</h3>
+              <div className="mb-3">
+                <DropDownListComponent
+                  id="model-select"
+                  dataSource={models.map((m) => ({ text: m.name, value: m.name }))}
+                  fields={{ text: 'text', value: 'value' }}
+                  value={selectedModel ? selectedModel.name : ''}
+                  change={handleModelChange}
+                  placeholder="Select model"
+                  style={{ width: '100%' }}
+                />
+              </div>
+            </div>
+          </div>
 
-  <div className="md:col-span-8 flex flex-wrap gap-3 items-start">
-  </div>
-</div>
+          <div className="md:col-span-8 flex flex-wrap gap-3 items-start" />
+        </div>
 
-{/* Custom styled tabs that work with light/dark theme and respect currentColor */}
-<div className="mt-6">
-  <div className="flex border-b dark:border-gray-700">
-    <button
-      className={`py-3 px-6 font-medium text-sm transition-colors duration-200 relative ${
-        activeTab === 0
-          ? 'text-white border-b-2'
-          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-      }`}
-      onClick={() => setActiveTab(0)}
-      style={{
-        backgroundColor: activeTab === 0 ? currentColor : '',
-        borderColor: activeTab === 0 ? currentColor : ''
-      }}
-    >
-      <div className="flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        </svg>
-        Current Variables
-      </div>
-    </button>
-    <button
-      className={`py-3 px-6 font-medium text-sm transition-colors duration-200 ${
-        activeTab === 1
-          ? 'text-white border-b-2'
-          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-      }`}
-      onClick={() => setActiveTab(1)}
-      style={{
-        backgroundColor: activeTab === 1 ? currentColor : '',
-        borderColor: activeTab === 1 ? currentColor : ''
-      }}
-    >
-      <div className="flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        Add Variables
-      </div>
-    </button>
-  </div>
-  <div className="bg-white dark:bg-gray-800 border border-t-0 dark:border-gray-700 rounded-b-lg shadow-sm">
-    {activeTab === 0 && renderModelVariablesGrid()}
-    {activeTab === 1 && renderAddVariablesGrid()}
-  </div>
-</div>
+        {/* Custom styled tabs that work with light/dark theme and respect currentColor */}
+        <div className="mt-6">
+          <div className="flex border-b dark:border-gray-700">
+            <button
+              className={`py-3 px-6 font-medium text-sm transition-colors duration-200 relative ${
+                activeTab === 0
+                  ? 'text-white border-b-2'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+              onClick={() => setActiveTab(0)}
+              style={{
+                backgroundColor: activeTab === 0 ? currentColor : '',
+                borderColor: activeTab === 0 ? currentColor : '',
+              }}
+            >
+              <div className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Current Variables
+              </div>
+            </button>
+            <button
+              className={`py-3 px-6 font-medium text-sm transition-colors duration-200 ${
+                activeTab === 1
+                  ? 'text-white border-b-2'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+              onClick={() => setActiveTab(1)}
+              style={{
+                backgroundColor: activeTab === 1 ? currentColor : '',
+                borderColor: activeTab === 1 ? currentColor : '',
+              }}
+            >
+              <div className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Add Variables
+              </div>
+            </button>
+          </div>
+          <div className="bg-white dark:bg-gray-800 border border-t-0 dark:border-gray-700 rounded-b-lg shadow-sm">
+            {activeTab === 0 && renderModelVariablesGrid()}
+            {activeTab === 1 && renderAddVariablesGrid()}
+          </div>
+        </div>
 
         {/* Clone Model Dialog */}
         <DialogComponent
           width="500px"
-          isModal={true}
+          isModal
           visible={showCloneDialog}
           close={() => setShowCloneDialog(false)}
           header="Clone Model"
-          showCloseIcon={true}
+          showCloseIcon
         >
           <div className="p-4">
             <div className="mb-4">
@@ -1642,55 +1638,57 @@ const handleCreateNewModel = async () => {
                 Cancel
               </ButtonComponent>
               <ButtonComponent
-  cssClass="e-success"
-  style={{ backgroundColor: currentColor, borderColor: currentColor }}
-  onClick={handleCloneModel}
-  disabled={!newModelName || newModelName.trim() === ''}
->
-  Clone Model
-</ButtonComponent>
+                cssClass="e-success"
+                style={{ backgroundColor: currentColor, borderColor: currentColor }}
+                onClick={handleCloneModel}
+                disabled={!newModelName || newModelName.trim() === ''}
+              >
+                Clone Model
+              </ButtonComponent>
             </div>
           </div>
         </DialogComponent>
 
         {/* Fix Coefficient Dialog */}
-{showFixCoefficientDialog && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-       style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
-    <div className="bg-white rounded-lg w-4/5 max-w-6xl h-4/5 max-h-[80vh] overflow-hidden flex flex-col">
-      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Fix Coefficients</h2>
-        <button
-          type="button"
-          className="text-gray-500 hover:text-gray-700"
-          onClick={handleCloseFixCoefficientDialog}
+        {showFixCoefficientDialog && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
         >
-          <FiXCircle size={24} />
-        </button>
-      </div>
+          <div className="bg-white rounded-lg w-4/5 max-w-6xl h-4/5 max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Fix Coefficients</h2>
+              <button
+                type="button"
+                className="text-gray-500 hover:text-gray-700"
+                onClick={handleCloseFixCoefficientDialog}
+              >
+                <FiXCircle size={24} />
+              </button>
+            </div>
 
-      <div className="p-4 flex-1 overflow-auto">
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold mb-2">Set Fixed Coefficients</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Enter custom coefficient values for the selected variables. These coefficients will be fixed during model fitting.
-          </p>
+            <div className="p-4 flex-1 overflow-auto">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold mb-2">Set Fixed Coefficients</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Enter custom coefficient values for the selected variables. These coefficients will be fixed during model fitting.
+                </p>
 
-          <div className="grid grid-cols-1 gap-4 mb-6">
-            {Array.isArray(variablesToFix) && variablesToFix.map((varName) => {
-              const variable = modelVariables.find(v => v.name === varName);
-              const isCurrentlyFixed = fixedCoefficients[varName] !== undefined;
+                <div className="grid grid-cols-1 gap-4 mb-6">
+                  {Array.isArray(variablesToFix) && variablesToFix.map((varName) => {
+                    const variable = modelVariables.find((v) => v.name === varName);
+                    const isCurrentlyFixed = fixedCoefficients[varName] !== undefined;
 
-              return (
-                <div key={varName} className="p-4 border rounded-lg bg-gray-50">
-                  <div className="flex justify-between items-center mb-2">
+                    return (
+                      <div key={varName} className="p-4 border rounded-lg bg-gray-50">
+                        <div className="flex justify-between items-center mb-2">
                     <div className="font-medium">{varName}</div>
                     <div className={`px-2 py-1 text-xs rounded-full ${isCurrentlyFixed ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
                       {isCurrentlyFixed ? 'Currently Fixed' : 'Currently Floating'}
                     </div>
                   </div>
 
-                  <div className="flex items-center">
+                        <div className="flex items-center">
                     <div className="mr-3 w-32">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Current Value</label>
                       <div className="p-2 bg-gray-100 rounded border text-sm">
@@ -1709,39 +1707,39 @@ const handleCreateNewModel = async () => {
                       />
                     </div>
                   </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
 
-          <div className="flex justify-center space-x-4 mb-4">
-            <button
-              type="button"
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              onClick={handlePreviewFixedCoefficients}
-            >
-              Preview Changes
-            </button>
+                <div className="flex justify-center space-x-4 mb-4">
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    onClick={handlePreviewFixedCoefficients}
+                  >
+                    Preview Changes
+                  </button>
 
-            <button
-              type="button"
-              className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-              onClick={handleUnfixCoefficients}
-            >
-              Unfix Selected Coefficients
-            </button>
-          </div>
-        </div>
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                    onClick={handleUnfixCoefficients}
+                  >
+                    Unfix Selected Coefficients
+                  </button>
+                </div>
+              </div>
 
-        {/* Preview Results */}
-        {fixCoeffPreview && (
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold mb-4">Preview Changes</h3>
+              {/* Preview Results */}
+              {fixCoeffPreview && (
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold mb-4">Preview Changes</h3>
 
-            <div className="max-h-96 overflow-y-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
+                <div className="max-h-96 overflow-y-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Variable
                     </th>
@@ -1764,9 +1762,9 @@ const handleCreateNewModel = async () => {
                       Status
                     </th>
                   </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {fixCoeffPreview.comparison && fixCoeffPreview.comparison.map((row) => (
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {fixCoeffPreview.comparison && fixCoeffPreview.comparison.map((row) => (
                     <tr key={row.variable || `row-${Math.random()}`} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{row.variable || '-'}</div>
@@ -1803,56 +1801,56 @@ const handleCreateNewModel = async () => {
                       </td>
                     </tr>
                   ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="mt-4 p-4 bg-gray-50 rounded">
-              <div className="flex justify-between">
-                <div>
-                  <p className="text-sm font-medium">R-squared: {fixCoeffPreview.rsquared?.toFixed(4) || 'N/A'}</p>
-                  <p className="text-sm font-medium">Adjusted R-squared: {fixCoeffPreview.rsquared_adj?.toFixed(4) || 'N/A'}</p>
+                    </tbody>
+                  </table>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">
+
+                <div className="mt-4 p-4 bg-gray-50 rounded">
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="text-sm font-medium">R-squared: {fixCoeffPreview.rsquared?.toFixed(4) || 'N/A'}</p>
+                      <p className="text-sm font-medium">Adjusted R-squared: {fixCoeffPreview.rsquared_adj?.toFixed(4) || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">
                     <strong>Note:</strong> Fixed coefficients don't have standard errors or t-statistics.
                   </p>
+                    </div>
+                  </div>
                 </div>
               </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-gray-200 flex justify-end space-x-2">
+              <button
+                type="button"
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                onClick={handleCloseFixCoefficientDialog}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+                onClick={handleApplyFixedCoefficients}
+                disabled={loading || !fixCoeffPreview}
+              >
+                {loading ? 'Processing...' : 'Apply Fixed Coefficients'}
+              </button>
             </div>
           </div>
+        </div>
         )}
-      </div>
-
-      <div className="p-4 border-t border-gray-200 flex justify-end space-x-2">
-        <button
-          type="button"
-          className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
-          onClick={handleCloseFixCoefficientDialog}
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
-          onClick={handleApplyFixedCoefficients}
-          disabled={loading || !fixCoeffPreview}
-        >
-          {loading ? "Processing..." : "Apply Fixed Coefficients"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
 
         {/* Date Filter Dialog */}
         <DialogComponent
           width="500px"
-          isModal={true}
+          isModal
           visible={showDateFilterDialog}
           close={() => setShowDateFilterDialog(false)}
           header="Filter Date Range"
-          showCloseIcon={true}
+          showCloseIcon
         >
           <div className="p-4">
             <div className="mb-4">
@@ -1888,203 +1886,203 @@ const handleCreateNewModel = async () => {
           </div>
         </DialogComponent>
 
-{/* Create New Model Dialog */}
-<DialogComponent
-  width="500px"
-  isModal={true}
-  visible={showCreateModelDialog}
-  close={() => setShowCreateModelDialog(false)}
-  header="Create New Model"
-  showCloseIcon={true}
->
-  <div className="p-4">
-    <div className="mb-4">
-      <label htmlFor="new-model-name-create" className="block text-sm font-medium mb-1">
-        New Model Name
-      </label>
-      <input
-        id="new-model-name-create"
-        type="text"
-        className="border-1 border-gray-300 rounded-md p-2 w-full"
-        placeholder="Enter model name"
-        value={newModelNameForCreate}
-        onChange={(e) => setNewModelNameForCreate(e.target.value)}
-      />
-    </div>
+        {/* Create New Model Dialog */}
+        <DialogComponent
+          width="500px"
+          isModal
+          visible={showCreateModelDialog}
+          close={() => setShowCreateModelDialog(false)}
+          header="Create New Model"
+          showCloseIcon
+        >
+          <div className="p-4">
+            <div className="mb-4">
+              <label htmlFor="new-model-name-create" className="block text-sm font-medium mb-1">
+                New Model Name
+              </label>
+              <input
+                id="new-model-name-create"
+                type="text"
+                className="border-1 border-gray-300 rounded-md p-2 w-full"
+                placeholder="Enter model name"
+                value={newModelNameForCreate}
+                onChange={(e) => setNewModelNameForCreate(e.target.value)}
+              />
+            </div>
 
-    <div className="mb-4">
-      <label htmlFor="kpi-select" className="block text-sm font-medium mb-1">
-        KPI Variable
-      </label>
-      <DropDownListComponent
-        id="kpi-select"
-        dataSource={availableKpis.map(kpi => ({ text: kpi, value: kpi }))}
-        fields={{ text: 'text', value: 'value' }}
-        value={newModelKpi}
-        change={(e) => setNewModelKpi(e.value)}
-        placeholder="Select KPI variable"
-        style={{ width: '100%' }}
-      />
-      <p className="text-sm text-gray-500 mt-1">
-        This is the dependent variable that your model will predict.
-      </p>
-    </div>
+            <div className="mb-4">
+              <label htmlFor="kpi-select" className="block text-sm font-medium mb-1">
+                KPI Variable
+              </label>
+              <DropDownListComponent
+                id="kpi-select"
+                dataSource={availableKpis.map((kpi) => ({ text: kpi, value: kpi }))}
+                fields={{ text: 'text', value: 'value' }}
+                value={newModelKpi}
+                change={(e) => setNewModelKpi(e.value)}
+                placeholder="Select KPI variable"
+                style={{ width: '100%' }}
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                This is the dependent variable that your model will predict.
+              </p>
+            </div>
 
-    <div className="flex justify-end gap-2 mt-6">
-      <ButtonComponent onClick={() => setShowCreateModelDialog(false)}>
-        Cancel
-      </ButtonComponent>
-      <ButtonComponent
-        cssClass="e-success"
-        style={{ backgroundColor: '#28a745', borderColor: '#28a745' }}
-        onClick={handleCreateNewModel}
-        disabled={!newModelNameForCreate || !newModelKpi}
-      >
-        Create Model
-      </ButtonComponent>
-    </div>
-  </div>
-</DialogComponent>
+            <div className="flex justify-end gap-2 mt-6">
+              <ButtonComponent onClick={() => setShowCreateModelDialog(false)}>
+                Cancel
+              </ButtonComponent>
+              <ButtonComponent
+                cssClass="e-success"
+                style={{ backgroundColor: '#28a745', borderColor: '#28a745' }}
+                onClick={handleCreateNewModel}
+                disabled={!newModelNameForCreate || !newModelKpi}
+              >
+                Create Model
+              </ButtonComponent>
+            </div>
+          </div>
+        </DialogComponent>
 
         {/* Model Comparison Dialog - using simple HTML buttons instead of ButtonComponent */}
         {showComparisonDialog && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg w-4/5 h-4/5 overflow-hidden flex flex-col">
-      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Model Changes Preview</h2>
-        <button
-          className="text-gray-500 hover:text-gray-700"
-          onClick={handleCancelChanges}
-        >
-          <FiXCircle size={24} />
-        </button>
-      </div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-4/5 h-4/5 overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Model Changes Preview</h2>
+              <button
+                className="text-gray-500 hover:text-gray-700"
+                onClick={handleCancelChanges}
+              >
+                <FiXCircle size={24} />
+              </button>
+            </div>
 
-      <div className="p-4 flex-1 overflow-auto">
-        {/* Debug info */}
-        <div className="bg-gray-100 p-2 text-xs mb-4">
-          <p>Selected Model: {selectedModel ? selectedModel.name : 'None'}</p>
-          {previewMode === 'add' ? (
-            <p>Adding {variablesToAdd.length} variables</p>
-          ) : (
-            <p>Removing {variablesToRemove.length} variables: {variablesToRemove.join(', ')}</p>
-          )}
-          <p>Pending Changes: {pendingChanges ? 'Yes' : 'No'}</p>
+            <div className="p-4 flex-1 overflow-auto">
+              {/* Debug info */}
+              <div className="bg-gray-100 p-2 text-xs mb-4">
+                <p>Selected Model: {selectedModel ? selectedModel.name : 'None'}</p>
+                {previewMode === 'add' ? (
+                  <p>Adding {variablesToAdd.length} variables</p>
+                ) : (
+                  <p>Removing {variablesToRemove.length} variables: {variablesToRemove.join(', ')}</p>
+                )}
+                <p>Pending Changes: {pendingChanges ? 'Yes' : 'No'}</p>
+              </div>
+
+              <h3 className="text-lg font-semibold mb-4">
+                Preview Changes to Model: {selectedModel ? selectedModel.name : ''}
+              </h3>
+
+              {/* Comparison table */}
+              {modelComparison && (
+              <div className="max-h-96 overflow-y-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Variable
+                </th>
+                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Current Coefficient
+                </th>
+                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        New Coefficient
+                </th>
+                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        % Change
+                </th>
+                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Current T-stat
+                </th>
+                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        New T-stat
+                </th>
+                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        % Change
+                </th>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Coeff Type
+                </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {modelComparison.map((row) => {
+                      // Determine if variable will be fixed - safely handle potential undefined values
+                      let willBeFixed = false;
+                      if (previewMode === 'add' && variableCoeffTypes) {
+                        // Check if it's a new variable with fixed coefficient
+                        const baseVarName = row.variable && row.variable.includes('_adstock_')
+                          ? row.variable.split('_adstock_')[0]
+                          : row.variable;
+                        willBeFixed = variableCoeffTypes[baseVarName] === 'fixed';
+                      } else {
+                        // For remove, use existing fixed status
+                        willBeFixed = fixedCoefficients && row.variable
+                          ? fixedCoefficients[row.variable] !== undefined
+                          : row.fixed === true;
+                      }
+
+                      return (
+                        <tr key={row.variable || `row-${Math.random()}`} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{row.variable || '-'}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      {formatComparisonCell('coefficient', row.coefficient, row)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      {formatComparisonCell('newCoefficient', row.newCoefficient, row)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      {row.coefficientPctChange !== null && row.coefficientPctChange !== undefined
+                        ? formatComparisonCell('pctChange', row.coefficientPctChange, row)
+                        : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      {formatComparisonCell('tStat', row.tStat, row)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      {formatComparisonCell('newTStat', row.newTStat, row)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      {row.tStatPctChange !== null && row.tStatPctChange !== undefined
+                        ? formatComparisonCell('pctChange', row.tStatPctChange, row)
+                        : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className={`text-sm ${willBeFixed ? 'font-semibold text-blue-600' : 'text-gray-500'}`}>
+                        {willBeFixed ? 'Fixed' : 'Floating'}
+                      </div>
+                    </td>
+                  </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-gray-200 flex justify-end space-x-2">
+              <button
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                onClick={handleCancelChanges}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+                onClick={handleApplyChanges}
+                disabled={loading}
+              >
+                {loading ? 'Processing...'
+                  : previewMode === 'add' ? 'Add Variables' : 'Remove Variables'}
+              </button>
+            </div>
+          </div>
         </div>
-
-        <h3 className="text-lg font-semibold mb-4">
-          Preview Changes to Model: {selectedModel ? selectedModel.name : ''}
-        </h3>
-
-        {/* Comparison table */}
-{modelComparison && (
-  <div className="max-h-96 overflow-y-auto">
-    <table className="min-w-full divide-y divide-gray-200">
-      <thead className="bg-gray-50">
-        <tr>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Variable
-          </th>
-          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Current Coefficient
-          </th>
-          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-            New Coefficient
-          </th>
-          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-            % Change
-          </th>
-          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Current T-stat
-          </th>
-          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-            New T-stat
-          </th>
-          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-            % Change
-          </th>
-          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Coeff Type
-          </th>
-        </tr>
-      </thead>
-      <tbody className="bg-white divide-y divide-gray-200">
-        {modelComparison.map((row) => {
-          // Determine if variable will be fixed - safely handle potential undefined values
-          let willBeFixed = false;
-          if (previewMode === 'add' && variableCoeffTypes) {
-            // Check if it's a new variable with fixed coefficient
-            const baseVarName = row.variable && row.variable.includes('_adstock_')
-              ? row.variable.split('_adstock_')[0]
-              : row.variable;
-            willBeFixed = variableCoeffTypes[baseVarName] === 'fixed';
-          } else {
-            // For remove, use existing fixed status
-            willBeFixed = fixedCoefficients && row.variable
-              ? fixedCoefficients[row.variable] !== undefined
-              : row.fixed === true;
-          }
-
-          return (
-            <tr key={row.variable || `row-${Math.random()}`} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900">{row.variable || '-'}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right">
-                {formatComparisonCell('coefficient', row.coefficient, row)}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right">
-                {formatComparisonCell('newCoefficient', row.newCoefficient, row)}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right">
-                {row.coefficientPctChange !== null && row.coefficientPctChange !== undefined
-                  ? formatComparisonCell('pctChange', row.coefficientPctChange, row)
-                  : '-'}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right">
-                {formatComparisonCell('tStat', row.tStat, row)}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right">
-                {formatComparisonCell('newTStat', row.newTStat, row)}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right">
-                {row.tStatPctChange !== null && row.tStatPctChange !== undefined
-                  ? formatComparisonCell('pctChange', row.tStatPctChange, row)
-                  : '-'}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-center">
-                <div className={`text-sm ${willBeFixed ? 'font-semibold text-blue-600' : 'text-gray-500'}`}>
-                  {willBeFixed ? 'Fixed' : 'Floating'}
-                </div>
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
-  </div>
-)}
-      </div>
-
-      <div className="p-4 border-t border-gray-200 flex justify-end space-x-2">
-        <button
-          className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
-          onClick={handleCancelChanges}
-        >
-          Cancel
-        </button>
-        <button
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
-          onClick={handleApplyChanges}
-          disabled={loading}
-        >
-          {loading ? "Processing..." :
-           previewMode === 'add' ? "Add Variables" : "Remove Variables"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+        )}
       </ErrorBoundary>
     </div>
   );

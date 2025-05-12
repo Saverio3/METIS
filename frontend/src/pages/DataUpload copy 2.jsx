@@ -58,7 +58,7 @@ const UploadCard = ({ title, icon, description, onUpload, fileType, uploading, u
 
           {uploading ? (
             <div className="text-center">
-              <div className="loader mb-3"></div>
+              <div className="loader mb-3" />
               <p className="text-gray-600 dark:text-gray-400">Uploading...</p>
             </div>
           ) : uploadSuccess ? (
@@ -147,7 +147,7 @@ const DataSummaryCard = ({ title, icon, data = null }) => {
                       toolbar={['Search']}
                       width="1419px"
                       height="300px"
-                      enableHover={true}
+                      enableHover
                       rowHeight={40}
                       textWrapSettings={{ wrapMode: 'Header' }}
                       emptyRecordTemplate=""
@@ -158,8 +158,8 @@ const DataSummaryCard = ({ title, icon, data = null }) => {
                           field="date"
                           headerText="Date/Observation"
                           width="140"
-                          isPrimaryKey={true}
-                          freeze={true}
+                          isPrimaryKey
+                          freeze
                           textAlign="Left"
                         />
                         {data.preview[0] && Object.keys(data.preview[0]).map((column, index) => (
@@ -204,91 +204,90 @@ const DataUpload = () => {
   const [modelSummary, setModelSummary] = useState(null);
   const [datasets, setDatasets] = useState([]);
 
-// Add useEffect to fetch datasets
-useEffect(() => {
-  fetchDatasets();
-}, []);
+  // Add useEffect to fetch datasets
+  useEffect(() => {
+    fetchDatasets();
+  }, []);
 
-// Add function to fetch datasets
-const fetchDatasets = async () => {
-  try {
-    const response = await dbService.listDatasets();
-    if (response.success) {
-      setDatasets(response.datasets);
-    } else {
-      console.error('Failed to load datasets:', response.error);
-    }
-  } catch (error) {
-    console.error('Error fetching datasets:', error);
-  }
-};
-
-const handleDataUpload = async (file) => {
-  setDataUploading(true);
-  setDataUploadSuccess(false);
-  setDataUploadError(null);
-
-  try {
-    // First try to upload to the database
+  // Add function to fetch datasets
+  const fetchDatasets = async () => {
     try {
-      const dbResponse = await dbService.uploadData(file);
+      const response = await dbService.listDatasets();
+      if (response.success) {
+        setDatasets(response.datasets);
+      } else {
+        console.error('Failed to load datasets:', response.error);
+      }
+    } catch (error) {
+      console.error('Error fetching datasets:', error);
+    }
+  };
 
-      if (dbResponse.success) {
+  const handleDataUpload = async (file) => {
+    setDataUploading(true);
+    setDataUploadSuccess(false);
+    setDataUploadError(null);
+
+    try {
+    // First try to upload to the database
+      try {
+        const dbResponse = await dbService.uploadData(file);
+
+        if (dbResponse.success) {
         // Store current dataset name in localStorage
-        localStorage.setItem('currentDataset', dbResponse.summary.dataset_name);
+          localStorage.setItem('currentDataset', dbResponse.summary.dataset_name);
 
-        // Continue with the regular flow using the response data
+          // Continue with the regular flow using the response data
+          setDataUploadSuccess(true);
+          const summary = {
+            'File Name': file.name,
+            'File Size': `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+            Variables: dbResponse.variables.length,
+            Observations: dbResponse.summary.n_observations,
+            'Date Range': dbResponse.summary.date_range,
+            Regions: dbResponse.summary.region_count || 1,
+            preview: dbResponse.preview,
+            dates: dbResponse.dates,
+          };
+          setDataSummary(summary);
+
+          // Refresh datasets list
+          fetchDatasets();
+
+          setDataUploading(false);
+          return;
+        }
+      } catch (dbError) {
+        console.log('Database upload failed, falling back to API:', dbError);
+      }
+
+      // Fall back to the regular API if the database upload fails
+      const response = await apiService.uploadData(file);
+      if (response.success) {
         setDataUploadSuccess(true);
         const summary = {
           'File Name': file.name,
           'File Size': `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-          'Variables': dbResponse.variables.length,
-          'Observations': dbResponse.summary.n_observations,
-          'Date Range': dbResponse.summary.date_range,
-          'Regions': dbResponse.summary.region_count || 1,
-          'preview': dbResponse.preview,
-          'dates': dbResponse.dates
+          Variables: response.variables.length,
+          Observations: response.summary.n_observations,
+          'Date Range': response.summary.date_range,
+          Regions: response.summary.region_count || 1,
+          preview: response.preview,
+          dates: response.dates,
         };
         setDataSummary(summary);
-
-        // Refresh datasets list
-        fetchDatasets();
-
-        setDataUploading(false);
-        return;
+      } else {
+        setDataUploadError(response.error || 'Upload failed');
       }
-    } catch (dbError) {
-      console.log('Database upload failed, falling back to API:', dbError);
+    } catch (error) {
+      console.error('Error uploading data:', error);
+      setDataUploadError(error.message || 'Upload failed');
+    } finally {
+      setDataUploading(false);
     }
+  };
 
-    // Fall back to the regular API if the database upload fails
-    const response = await apiService.uploadData(file);
-    if (response.success) {
-      setDataUploadSuccess(true);
-      const summary = {
-        'File Name': file.name,
-        'File Size': `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-        'Variables': response.variables.length,
-        'Observations': response.summary.n_observations,
-        'Date Range': response.summary.date_range,
-        'Regions': response.summary.region_count || 1,
-        'preview': response.preview,
-        'dates': response.dates
-      };
-      setDataSummary(summary);
-    } else {
-      setDataUploadError(response.error || 'Upload failed');
-    }
-  } catch (error) {
-    console.error('Error uploading data:', error);
-    setDataUploadError(error.message || 'Upload failed');
-  } finally {
-    setDataUploading(false);
-  }
-};
-
-const DatasetSelector = ({ datasets, onSelect }) => {
-  return (
+  const DatasetSelector = ({ datasets, onSelect }) => (
     <div className="w-full p-4 mb-4 bg-white dark:bg-secondary-dark-bg rounded-lg shadow-sm">
       <h3 className="text-lg font-semibold mb-3">Saved Datasets</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -314,39 +313,38 @@ const DatasetSelector = ({ datasets, onSelect }) => {
       </div>
     </div>
   );
-};
 
-// Add a handler for selecting a dataset
-const handleSelectDataset = async (datasetName) => {
-  try {
-    setLoading(true);
+  // Add a handler for selecting a dataset
+  const handleSelectDataset = async (datasetName) => {
+    try {
+      setLoading(true);
 
-    const response = await dbService.loadDataset(datasetName);
+      const response = await dbService.loadDataset(datasetName);
 
-    if (response.success) {
+      if (response.success) {
       // Store current dataset name in localStorage
-      localStorage.setItem('currentDataset', datasetName);
+        localStorage.setItem('currentDataset', datasetName);
 
-      // Update UI
-      setDataUploadSuccess(true);
-      const summary = {
-        'Dataset Name': datasetName,
-        'Variables': response.variables.length,
-        'preview': response.preview,
-        'dates': response.dates
-      };
-      setDataSummary(summary);
-    } else {
-      alert(`Failed to load dataset: ${response.error}`);
+        // Update UI
+        setDataUploadSuccess(true);
+        const summary = {
+          'Dataset Name': datasetName,
+          Variables: response.variables.length,
+          preview: response.preview,
+          dates: response.dates,
+        };
+        setDataSummary(summary);
+      } else {
+        alert(`Failed to load dataset: ${response.error}`);
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading dataset:', error);
+      setLoading(false);
+      alert(`Error: ${error.message}`);
     }
-
-    setLoading(false);
-  } catch (error) {
-    console.error('Error loading dataset:', error);
-    setLoading(false);
-    alert(`Error: ${error.message}`);
-  }
-};
+  };
 
   const handleModelUpload = async (file) => {
     setModelUploading(true);
@@ -360,10 +358,10 @@ const handleSelectDataset = async (datasetName) => {
         setModelUploadSuccess(true);
         const summary = {
           'Model Name': response.model.name,
-          'KPI': response.model.kpi,
-          'Features': response.model.features.length,
+          KPI: response.model.kpi,
+          Features: response.model.features.length,
           'R-squared': response.model.rsquared?.toFixed(4) || 'N/A',
-          'Observations': response.model.obs || 'N/A',
+          Observations: response.model.obs || 'N/A',
         };
         setModelSummary(summary);
       } else {
@@ -382,12 +380,12 @@ const handleSelectDataset = async (datasetName) => {
       <Header category="Data Management" title="Upload Data" />
 
       <div className="flex flex-wrap -mx-4">
-      {datasets.length > 0 && (
-  <DatasetSelector
-    datasets={datasets}
-    onSelect={handleSelectDataset}
-  />
-)}
+        {datasets.length > 0 && (
+        <DatasetSelector
+          datasets={datasets}
+          onSelect={handleSelectDataset}
+        />
+        )}
         <UploadCard
           title="Upload Data File"
           icon={<FiUploadCloud />}
