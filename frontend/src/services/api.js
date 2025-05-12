@@ -39,7 +39,7 @@ const apiService = {
   createStripeCheckoutSession: async (priceId, userId) => {
     try {
       console.log(`Creating Stripe checkout session for price: ${priceId}, user: ${userId}`);
-      console.log(`API URL: ${API_URL}/api/stripe/create-checkout-session`);
+      console.log(`API URL: ${API_URL}/stripe/create-checkout-session`);
 
       // Log complete request
       console.log('Request payload:', { priceId, userId });
@@ -47,7 +47,7 @@ const apiService = {
       // Make the API request with full URL
       const response = await axios({
         method: 'post',
-        url: `${API_URL}/api/stripe/create-checkout-session`,
+        url: `${API_URL}/stripe/create-checkout-session`,
         data: { priceId, userId },
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ const apiService = {
   createStripeCustomerPortal: async (customerId) => {
     try {
       console.log(`Creating Stripe customer portal for customer: ${customerId}`);
-      const response = await api.post('/api/stripe/customer-portal', {
+      const response = await api.post('/stripe/customer-portal', {
         customerId,
       });
 
