@@ -1,0 +1,45 @@
+/* Center the Clerk auth card */
+.cl-card {
+  margin: 0 auto !important;
+  max-width: 450px !important;
+}
+
+/* Improve Clerk input styling */
+.cl-formButtonPrimary {
+  background-color: #4338ca !important; /* Match your app's primary color */
+}
+
+.cl-formButtonPrimary:hover {
+  background-color: #4f46e5 !important; /* Slightly lighter hover state */
+}
+
+.cl-socialButtonsIconButton {
+  border-radius: 0.5rem !important;
+}
+
+/* Adjust overall auth container */
+.cl-rootBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+}
+
+/* Improve branding and text */
+.cl-headerTitle {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+}
+
+.cl-headerSubtitle {
+  font-size: 1rem !important;
+}
+
+/* Improve mobile experience */
+@media (max-width: 768px) {
+  .cl-card {
+    width: 90% !important;
+    max-width: 400px !important;
+  }
+}

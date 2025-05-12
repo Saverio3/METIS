@@ -61,6 +61,8 @@ const Charts = () => {
   const [chartTitle, setChartTitle] = useState('Variable Visualization');
   const [models, setModels] = useState([]);
   const [selectedModel, setSelectedModel] = useState(null);
+  const [showTransformed, setShowTransformed] = useState(false);
+  const [transformationInfo, setTransformationInfo] = useState({});
 
   // Ref for chart container to get dimensions
   const chartContainerRef = useRef(null);
@@ -184,8 +186,18 @@ const Charts = () => {
         variablesToChart.push(kpiVariable);
       }
 
-      console.log('Sending to API:', { modelName: selectedModel, variables: variablesToChart });
-      const response = await apiService.chartVariables(selectedModel, variablesToChart);
+      console.log('Sending to API:', {
+        modelName: selectedModel,
+        variables: variablesToChart,
+        useTransformed: showTransformed
+      });
+
+      // Call the API with the transformed parameter
+      const response = await apiService.chartVariables(
+        selectedModel,
+        variablesToChart,
+        showTransformed
+      );
 
       if (response.success) {
         console.log('Chart data received:', response.chartData);
@@ -197,25 +209,34 @@ const Charts = () => {
           return;
         }
 
-        // Store the raw chart data
-        setChartData(response.chartData);
+        // Process the chart data based on transformation flag
+        let processedChartData = response.chartData;
 
-        // Set chart title
-        if (variablesToChart.length === 1) {
-          setChartTitle(`${variablesToChart[0]} Over Time`);
-        } else if (variablesToChart.length === 2) {
-          setChartTitle(`${variablesToChart[0]} vs ${variablesToChart[1]}`);
-        } else {
-          setChartTitle(`Multiple Variables Comparison`);
+        // Update chart title with transformation info if needed
+        let titleSuffix = "";
+        if (showTransformed) {
+          titleSuffix = " (Transformed)";
         }
+
+        // Set chart title based on the number of variables
+        if (variablesToChart.length === 1) {
+          setChartTitle(`${variablesToChart[0]}${titleSuffix} Over Time`);
+        } else if (variablesToChart.length === 2) {
+          setChartTitle(`${variablesToChart[0]} vs ${variablesToChart[1]}${titleSuffix}`);
+        } else {
+          setChartTitle(`Multiple Variables Comparison${titleSuffix}`);
+        }
+
+        // Store the processed chart data
+        setChartData(processedChartData);
       } else {
         console.error('Failed to fetch chart data:', response.error);
-        alert('Failed to load chart data');
+        alert('Failed to load chart data: ' + (response.error || 'Unknown error'));
       }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching chart data:', error);
-      alert('Error loading chart data');
+      alert('Error loading chart data: ' + (error.message || 'Unknown error'));
       setLoading(false);
     }
   };
@@ -403,16 +424,16 @@ const Charts = () => {
   };
 
   // Render line chart
-  const renderLineChart = () => {
-    if (!chartData || chartData.length === 0) {
-      return (
-        <div className="flex flex-col items-center justify-center h-96 bg-gray-50 rounded-lg">
-          <FiBarChart2 className="text-5xl mb-3 text-gray-400" />
-          <p className="text-gray-500 mb-2">No chart data</p>
-          <p className="text-gray-400 text-sm">Select variables and click "Generate Chart" to visualize data</p>
-        </div>
-      );
-    }
+const renderLineChart = () => {
+  if (!chartData || chartData.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 bg-gray-50 rounded-lg">
+        <FiBarChart2 className="text-5xl mb-3 text-gray-400" />
+        <p className="text-gray-500 mb-2">No chart data</p>
+        <p className="text-gray-400 text-sm">Select variables and click "Generate Chart" to visualize data</p>
+      </div>
+    );
+  }
 
   // Transform the data for line chart
   const transformedData = [];
@@ -479,17 +500,41 @@ const Charts = () => {
   });
 
   // Add padding to both axes
-  const primaryPadding = (primaryMaxY - primaryMinY) * 0.1;
-  primaryMinY = primaryMinY === Number.MAX_VALUE ? 0 : Math.max(0, primaryMinY - primaryPadding);
-  primaryMaxY = primaryMaxY === Number.MIN_VALUE ? 100 : primaryMaxY + primaryPadding;
+  const primaryYRange = primaryMaxY - primaryMinY;
+  const primaryPadding = primaryYRange * 0.1;
 
-  const secondaryPadding = (secondaryMaxY - secondaryMinY) * 0.1;
-  secondaryMinY = secondaryMinY === Number.MAX_VALUE ? 0 : Math.max(0, secondaryMinY - secondaryPadding);
-  secondaryMaxY = secondaryMaxY === Number.MIN_VALUE ? 100 : secondaryMaxY + secondaryPadding;
+  // Set appropriate min/max for primary axis, handling edge cases
+  if (primaryMinY !== Number.MAX_VALUE) {
+    primaryMinY = primaryMinY - primaryPadding;
+  } else {
+    primaryMinY = 0;
+  }
+
+  if (primaryMaxY !== Number.MIN_VALUE) {
+    primaryMaxY = primaryMaxY + primaryPadding;
+  } else {
+    primaryMaxY = 100;
+  }
+
+  // Same for secondary axis
+  const secondaryYRange = secondaryMaxY - secondaryMinY;
+  const secondaryPadding = secondaryYRange * 0.1;
+
+  if (secondaryMinY !== Number.MAX_VALUE) {
+    secondaryMinY = secondaryMinY - secondaryPadding;
+  } else {
+    secondaryMinY = 0;
+  }
+
+  if (secondaryMaxY !== Number.MIN_VALUE) {
+    secondaryMaxY = secondaryMaxY + secondaryPadding;
+  } else {
+    secondaryMaxY = 100;
+  }
 
   // Ensure valid axis intervals
-  const primaryYInterval = Math.ceil((primaryMaxY - primaryMinY) / 5);
-  const secondaryYInterval = Math.ceil((secondaryMaxY - secondaryMinY) / 5);
+  const primaryYInterval = Math.ceil(primaryYRange / 5) || 1;
+  const secondaryYInterval = Math.ceil(secondaryYRange / 5) || 1;
 
   return (
     <div className="chart-container">
@@ -508,10 +553,11 @@ const Charts = () => {
         primaryYAxis={{
           minimum: primaryMinY,
           maximum: primaryMaxY,
-          interval: primaryYInterval > 0 ? primaryYInterval : 1,
+          interval: primaryYInterval,
           labelFormat: '{value}',
-          lineStyle: { width: 0 },
-          majorTickLines: { width: 0 },
+          lineStyle: { width: 1 },
+          majorGridLines: { width: 1 },
+          majorTickLines: { width: 1 },
           minorTickLines: { width: 0 },
           labelStyle: { size: '14px' },
           title: 'Primary Axis',
@@ -523,7 +569,7 @@ const Charts = () => {
           opposedPosition: true,
           minimum: secondaryMinY,
           maximum: secondaryMaxY,
-          interval: secondaryYInterval > 0 ? secondaryYInterval : 1,
+          interval: secondaryYInterval,
           labelFormat: '{value}',
           title: 'Secondary Axis',
           titleStyle: { fontWeight: '600', size: '14px' },
@@ -1145,6 +1191,19 @@ const renderStackedChart = () => {
                 Include KPI
               </label>
             </div>
+
+            <div className="flex items-center mb-3">
+  <input
+    type="checkbox"
+    id="show-transformed"
+    className="form-checkbox h-4 w-4 text-blue-600"
+    checked={showTransformed}
+    onChange={() => setShowTransformed(!showTransformed)}
+  />
+  <label htmlFor="show-transformed" className="ml-2 text-sm font-medium">
+    Chart Transformed Variable
+  </label>
+</div>
 
             {includeKPI && (
               <div className="mb-3">

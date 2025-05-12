@@ -1,7 +1,7 @@
 // src/services/api.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Create axios instance with base URL
 const api = axios.create({
@@ -34,6 +34,107 @@ api.interceptors.response.use(response => {
 
 // API service methods
 const apiService = {
+
+// Stripe Payments
+createStripeCheckoutSession: async (priceId, userId) => {
+  try {
+    console.log(`Creating Stripe checkout session for price: ${priceId}, user: ${userId}`);
+    console.log(`API URL: ${API_URL}/api/stripe/create-checkout-session`);
+
+    // Log complete request
+    console.log('Request payload:', { priceId, userId });
+
+    // Make the API request with full URL
+    const response = await axios({
+      method: 'post',
+      url: `${API_URL}/api/stripe/create-checkout-session`,
+      data: { priceId, userId },
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    console.log("Complete response:", response);
+    console.log("Checkout session response data:", response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error('Error creating Stripe checkout session:', error);
+
+    // Log detailed error information
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+      console.error('Response status:', error.response.status);
+      console.error('Response headers:', error.response.headers);
+      return { success: false, error: `Server error: ${error.response.status} - ${JSON.stringify(error.response.data)}` };
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+      return { success: false, error: 'No response received from server' };
+    } else {
+      console.error('Error setting up request:', error.message);
+      return { success: false, error: `Request setup error: ${error.message}` };
+    }
+  }
+},
+
+createStripeCustomerPortal: async (customerId) => {
+  try {
+    console.log(`Creating Stripe customer portal for customer: ${customerId}`);
+    const response = await api.post('/api/stripe/customer-portal', {
+      customerId
+    });
+
+    console.log("Customer portal response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating Stripe customer portal:', error);
+    return { success: false, error: error.message || 'Network error' };
+  }
+},
+
+getSubscriptionStatus: async (userId) => {
+  try {
+    console.log(`Getting subscription status for user: ${userId}`);
+    // Make sure path is correct without duplicate /api
+    const response = await api.get(`/stripe/subscription-status?userId=${userId}`);
+
+    console.log("Subscription status response:", response.data);
+
+    // Add validation logic
+    if (response.data.success && response.data.subscription) {
+      // Check additional details to ensure valid subscription
+      const subscription = response.data.subscription;
+
+      // Log subscription details for debugging
+      console.log("Current subscription details:", {
+        status: subscription.status,
+        plan: subscription.plan,
+        expires: new Date(subscription.current_period_end * 1000).toLocaleString()
+      });
+
+      return response.data;
+    } else {
+      console.error("Invalid subscription response:", response.data);
+      return {
+        success: false,
+        error: "Invalid subscription data",
+        subscription: { status: "inactive" }
+      };
+    }
+  } catch (error) {
+    console.error('Error getting Stripe subscription status:', error);
+    return {
+      success: false,
+      error: error.message || 'Network error',
+      subscription: {
+        status: "error",
+        plan: "Unknown",
+        current_period_end: null
+      }
+    };
+  }
+},
+
   // Data management
   uploadData: async (file) => {
     const formData = new FormData();
@@ -151,48 +252,55 @@ addVariables: async (modelName, variables, adstockRates = []) => {
     }
   },
 
-  chartVariables: async (modelName, variables) => {
+  chartVariables: async (modelName, variables, useTransformed = false) => {
     try {
+      let variablesToChart = [...variables];
+
+      console.log('Sending to API:', { modelName, variables: variablesToChart, useTransformed });
       const response = await api.post('/models/chart-vars', {
-        modelName, variables,
+        modelName,
+        variables: variablesToChart,
+        useTransformed
       });
 
-      if (response.data.success && response.data.chartData) {
-        // Ensure each series has the correct structure
-        const cleanedData = response.data.chartData.map(series => {
-          // Make sure the series has a name
-          const name = series.name || 'Unnamed Series';
+      if (response.data.success) {
+        // If transformations are applied, ensure the transformation type is visible in the name
+        const chartData = response.data.chartData.map(series => {
+          // Check if the name already includes the transformation info
+          if (series.name.includes('(STA)') ||
+              series.name.includes('(SUB)') ||
+              series.name.includes('(MDV)')) {
+            return series;
+          }
 
-          // Clean up the data points
-          const data = Array.isArray(series.data)
-            ? series.data
-                .filter(point => point && point.x && point.y !== undefined && point.y !== null)
-                .map(point => ({
-                  x: point.x,
-                  y: typeof point.y === 'string' ? parseFloat(point.y) : point.y
-                }))
-            : [];
+          // If server didn't include transformation, use the type we have
+          if (useTransformed && series.transformationType) {
+            return {
+              ...series,
+              name: `${series.name} (${series.transformationType})`
+            };
+          }
 
-          return {
-            name,
-            data
-          };
+          return series;
         });
 
-        // Only return series with data
-        const validSeries = cleanedData.filter(series => series.data && series.data.length > 0);
-
         return {
-          success: validSeries.length > 0,
-          chartData: validSeries,
-          error: validSeries.length === 0 ? 'No valid data points found' : null
+          success: true,
+          chartData: chartData
+        };
+      } else {
+        console.error('Failed to fetch chart data:', response.data.error);
+        return {
+          success: false,
+          error: response.data.error
         };
       }
-
-      return response.data;
     } catch (error) {
-      console.error('Error charting variables:', error);
-      return { success: false, error: error.message };
+      console.error('Error fetching chart data:', error);
+      return {
+        success: false,
+        error: error.message
+      };
     }
   },
 
@@ -349,18 +457,37 @@ previewRemoveVariables: async (modelName, variables) => {
 // Apply date filter to model
 filterModel: async (modelName, startDate, endDate) => {
   try {
-    console.log(`Filtering model: ${modelName} from ${startDate.toISOString()} to ${endDate.toISOString()}`);
+    console.log(`Filtering model: ${modelName} from ${startDate} to ${endDate}`);
+
+    const formattedStartDate = startDate instanceof Date ?
+      startDate.toISOString() :
+      new Date(startDate).toISOString();
+
+    const formattedEndDate = endDate instanceof Date ?
+      endDate.toISOString() :
+      new Date(endDate).toISOString();
+
     const response = await api.post('/models/filter', {
       modelName,
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0],
+      startDate: formattedStartDate,
+      endDate: formattedEndDate
     });
 
     console.log("API response for filter:", response.data);
+
+    if (response.data.success) {
+      console.log(`Filter applied successfully. Observations: ${response.data.observations || 'unknown'}`);
+    } else {
+      console.error(`Filter error: ${response.data.error}`);
+    }
+
     return response.data;
   } catch (error) {
     console.error('Error filtering model:', error);
-    return { success: false, error: error.message };
+    if (error.response) {
+      console.error('Error response:', error.response.data);
+    }
+    return { success: false, error: error.message || "Failed to filter model" };
   }
 },
 
@@ -512,6 +639,7 @@ createVariableCurve: async (variableName, curveType, alpha, beta, gamma, adstock
 },
 
 // Update the runModelDiagnostics function in api.js
+// Update the runModelDiagnostics function in api.js
 runModelDiagnostics: async (modelName, tests = []) => {
   try {
     console.log(`Running diagnostic tests for model: ${modelName}`);
@@ -570,6 +698,9 @@ runDecomposition: async (modelName) => {
     console.log(`Requesting decomposition for model: ${modelName}`);
     const response = await api.post('/models/decomposition', {
       modelName
+    }, {
+      // Increase timeout for decomposition which might take longer
+      timeout: 60000 // 60 seconds
     });
 
     return response.data;
@@ -708,12 +839,15 @@ exportModelToExcel: async (modelName, exportPath = '') => {
 },
 
 // Rename Model
-renameModel: async (oldName, newName) => {
+renameModel: async (oldModelName, newModelName) => {
   try {
+    console.log(`Renaming model from ${oldModelName} to ${newModelName}`);
     const response = await api.post('/models/rename', {
-      oldName,
-      newName
+      oldModelName,
+      newModelName
     });
+
+    console.log("Rename model API response:", response.data);
     return response.data;
   } catch (error) {
     console.error('Error renaming model:', error);

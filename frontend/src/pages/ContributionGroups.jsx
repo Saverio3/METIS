@@ -76,6 +76,13 @@ const ContributionGroups = () => {
     }
   }, [variables]);
 
+  useEffect(() => {
+    // This will run whenever variables changes or when uniqueGroups changes
+    if (selectedModel && uniqueGroups.length > 0) {
+      fetchGroupColors(selectedModel);
+    }
+  }, [selectedModel, uniqueGroups]);
+
   // Fetch models from API
   const fetchModels = async () => {
     try {
@@ -153,9 +160,14 @@ const ContributionGroups = () => {
   // Fetch existing colors for groups
   const fetchGroupColors = async (modelName) => {
     try {
+      console.log('Fetching group colors for model:', modelName);
       const response = await apiService.getGroupColors(modelName);
+
       if (response.success) {
+        console.log('Group colors retrieved:', response.colors);
         setGroupColors(response.colors || {});
+      } else {
+        console.warn('Failed to fetch group colors:', response.error);
       }
     } catch (error) {
       console.error('Error fetching group colors:', error);
@@ -183,6 +195,7 @@ const ContributionGroups = () => {
 
   // Handle group color change
   const handleGroupColorChange = (group, color) => {
+    console.log(`Changing color for ${group} to ${color}`);
     const updatedColors = {
       ...groupColors,
       [group]: color
@@ -427,20 +440,20 @@ const ContributionGroups = () => {
           <div className="flex space-x-2">
             <ButtonComponent
               cssClass="e-success"
-              iconCss="e-icons e-refresh"
+              // iconCss="e-icons e-refresh"
               style={{ backgroundColor: currentColor, borderColor: currentColor }}
               onClick={() => fetchModelVariables(selectedModel)}
               disabled={!selectedModel || loading}
             >
               <div className="flex items-center">
-                <FiRefreshCw className="mr-1" />
+              <FiRefreshCw className="mr-1" />
                 REFRESH
               </div>
             </ButtonComponent>
 
             <ButtonComponent
               cssClass="e-success"
-              iconCss="e-icons e-save"
+              // iconCss="e-icons e-save"
               style={{ backgroundColor: currentColor, borderColor: currentColor }}
               onClick={saveContributionGroups}
               disabled={!selectedModel || loading || saving}
@@ -465,122 +478,125 @@ const ContributionGroups = () => {
           </div>
         )}
 
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div
-              className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"
-              style={{ borderColor: currentColor }}
-            ></div>
-            <p className="ml-2">Loading variables...</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <GridComponent
-              ref={gridRef}
-              dataSource={filteredVariables}
-              allowPaging={true}
-              allowSorting={true}
-              pageSettings={{ pageSize: 20 }}
-              toolbar={toolbarOptions}
-              searchSettings={searchSettings}
-              height="500px"
-            >
-              <ColumnsDirective>
-                <ColumnDirective
-                  field="selection"
-                  headerText=""
-                  width="60"
-                  template={selectionTemplate}
-                  headerTemplate={headerSelectionTemplate}
-                  textAlign="Center"
-                />
-                <ColumnDirective field="name" headerText="Variable" width="200" isPrimaryKey={true} />
-                <ColumnDirective field="coefficient" headerText="Coefficient" width="120" format="N4" textAlign="Right" />
-                <ColumnDirective field="tStat" headerText="T-Stat" width="120" format="N4" textAlign="Right" />
-                <ColumnDirective field="transformation" headerText="Transformation" width="150" />
-                <ColumnDirective
-                  field="Group"
-                  headerText="Group"
-                  width="150"
-                  template={groupTemplate}
-                />
-                <ColumnDirective
-                  field="Adjustment"
-                  headerText="Adjustment"
-                  width="150"
-                  template={adjustmentTemplate}
-                />
-              </ColumnsDirective>
-              <Inject services={[Page, Sort, Filter, Toolbar, Edit, Search]} />
-            </GridComponent>
-          </div>
-        )}
+<div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+  {/* Contribution Groups Table - Takes 3/4 of the space */}
+  <div className="lg:col-span-3">
+    {loading ? (
+      <div className="flex items-center justify-center h-64">
+        <div
+          className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"
+          style={{ borderColor: currentColor }}
+        ></div>
+        <p className="ml-2">Loading variables...</p>
+      </div>
+    ) : (
+      <div className="overflow-x-auto">
+        <GridComponent
+          ref={gridRef}
+          dataSource={filteredVariables}
+          allowPaging={true}
+          allowSorting={true}
+          pageSettings={{ pageSize: 20 }}
+          toolbar={toolbarOptions}
+          searchSettings={searchSettings}
+          height="500px"
+        >
+          <ColumnsDirective>
+            <ColumnDirective
+              field="selection"
+              headerText=""
+              width="50"
+              template={selectionTemplate}
+              headerTemplate={headerSelectionTemplate}
+              textAlign="Center"
+            />
+            <ColumnDirective field="name" headerText="Variable" width="200" isPrimaryKey={true} />
+            <ColumnDirective field="coefficient" headerText="Coefficient" width="110" format="N4" textAlign="Right" />
+            <ColumnDirective field="tStat" headerText="T-Stat" width="110" format="N4" textAlign="Right" />
+            <ColumnDirective field="transformation" headerText="Transform" width="120" />
+            <ColumnDirective
+              field="Group"
+              headerText="Group"
+              width="130"
+              template={groupTemplate}
+            />
+            <ColumnDirective
+              field="Adjustment"
+              headerText="Adjustment"
+              width="130"
+              template={adjustmentTemplate}
+            />
+          </ColumnsDirective>
+          <Inject services={[Page, Sort, Filter, Toolbar, Edit, Search]} />
+        </GridComponent>
+      </div>
+    )}
+  </div>
 
-        {/* Group Colors Section */}
-        <div className="mt-6">
-          <h3 className="text-lg font-semibold mb-4">Group Colors</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Group
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Color
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Preview
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {uniqueGroups.map((group, index) => (
-                  <tr key={group} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {group}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="w-32">
-                        <ColorPickerComponent
-                          id={`color-${group}`}
-                          value={groupColors[group] || '#cccccc'}
-                          mode="Palette"
-                          modeSwitcher={true}
-                          change={(args) => handleGroupColorChange(group, args.currentValue.hex)}
-                        />
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div
-                        className="w-8 h-8 rounded border border-gray-300"
-                        style={{ backgroundColor: groupColors[group] || '#cccccc' }}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+  {/* Group Colors Section - Takes 1/4 of the space */}
+  <div className="lg:col-span-1">
+    <div className="bg-white rounded-lg shadow p-4 h-full">
+      <h3 className="text-lg font-semibold mb-4">Group Colors</h3>
+      <div className="overflow-y-auto max-h-[448px]"> {/* Match the table height to the grid */}
+        <table className="w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50 sticky top-0">
+            <tr>
+              <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Group
+              </th>
+              <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Color
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {uniqueGroups.map((group, index) => (
+              <tr key={group} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {group}
+                </td>
+                <td className="px-3 py-3 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <ColorPickerComponent
+                      id={`color-${group}`}
+                      value={groupColors[group] || '#cccccc'}
+                      mode="Palette"
+                      cssClass="e-small-colorpicker"
+                      showButtons={false}
+                      change={(args) => handleGroupColorChange(group, args.currentValue.hex)}
+                    />
+                    <div
+                      className="ml-2 w-6 h-6 rounded border border-gray-300"
+                      style={{ backgroundColor: groupColors[group] || '#cccccc' }}
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
 
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-lg font-medium mb-2">About Contribution Groups</h3>
-          <p className="text-sm text-gray-600 mb-2">
-            Contribution groups help organize variables for decomposition analysis. Variables in the same group will be combined when showing contribution charts.
-          </p>
-          <p className="text-sm text-gray-600 mb-2">
-            <span className="font-medium">Group:</span> Assign a descriptive group name (e.g., "Media", "Price", "Promotion", "Seasonality").
-          </p>
-          <p className="text-sm text-gray-600">
-            <span className="font-medium">Adjustment:</span> Optional adjustment to apply during decomposition:
-            <ul className="list-disc ml-8 mt-1">
-              <li><span className="font-medium">Min:</span> Subtract the minimum contribution from each time period</li>
-              <li><span className="font-medium">Max:</span> Subtract the maximum contribution from each time period</li>
-              <li><span className="font-medium">None:</span> Use the contribution as is</li>
-            </ul>
-          </p>
-        </div>
+<div className="mt-6 p-4 bg-gray-50 rounded-lg">
+  <h3 className="text-lg font-medium mb-2">About Contribution Groups</h3>
+  <p className="text-sm text-gray-600 mb-2">
+    Contribution groups help organize variables for decomposition analysis. Variables in the same group will be combined when showing contribution charts.
+  </p>
+  <p className="text-sm text-gray-600 mb-2">
+    <span className="font-medium">Group:</span> Assign a descriptive group name (e.g., "Media", "Price", "Promotion", "Seasonality").
+  </p>
+  <p className="text-sm text-gray-600">
+    <span className="font-medium">Adjustment:</span> Optional adjustment to apply during decomposition:
+    <ul className="list-disc ml-8 mt-1">
+      <li><span className="font-medium">Min:</span> Subtract the minimum contribution from each time period</li>
+      <li><span className="font-medium">Max:</span> Subtract the maximum contribution from each time period</li>
+      <li><span className="font-medium">None:</span> Use the contribution as is</li>
+    </ul>
+  </p>
+</div>
       </ErrorBoundary>
     </div>
   );

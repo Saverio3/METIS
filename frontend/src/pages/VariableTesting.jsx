@@ -10,22 +10,23 @@ import ErrorBoundary from '../components/ErrorBoundary';
 
 const VariableTesting = () => {
   const { currentColor } = useStateContext();
-  
+
   // States for variables and models
   const [variables, setVariables] = useState([]);
   const [selectedVariables, setSelectedVariables] = useState([]);
   const [models, setModels] = useState([]);
   const [selectedModel, setSelectedModel] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // States for test results
   const [testResults, setTestResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [testPerformed, setTestPerformed] = useState(false);
-  
+
   // Optional states for advanced features
-  const [adstockRates, setAdstockRates] = useState({});
+  const [selectedAdstockRates, setSelectedAdstockRates] = useState([]);
   const [showAdstockOptions, setShowAdstockOptions] = useState(false);
+  const adstockOptions = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90];
 
   // Fetch variables and models on component mount
   useEffect(() => {
@@ -68,7 +69,7 @@ const VariableTesting = () => {
   };
 
   // Filter variables based on search term
-  const filteredVariables = variables.filter(v => 
+  const filteredVariables = variables.filter(v =>
     v.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -92,7 +93,7 @@ const VariableTesting = () => {
     }
   };
 
-  // Handle testing variables
+  // Handle testing variables with multiple adstock rates
   const handleTestVariables = async () => {
     if (selectedVariables.length === 0) {
       alert('Please select at least one variable to test');
@@ -104,24 +105,55 @@ const VariableTesting = () => {
       return;
     }
 
+    if (selectedAdstockRates.length === 0) {
+      // Default to 0% adstock if none selected
+      setSelectedAdstockRates([0]);
+    }
+
     setLoading(true);
     try {
-      // Prepare adstock rates if needed
-      const adstockRatesArray = selectedVariables.map(v => adstockRates[v] || 0);
-      
-      // Call API to test variables
-      const response = await apiService.testVariables(
-        selectedModel,
-        selectedVariables,
-        adstockRatesArray
-      );
+      // For each selected variable and each selected adstock rate, create a test entry
+      let allResults = [];
+      let allPromises = [];
 
-      if (response.success) {
-        setTestResults(response.results);
-        setTestPerformed(true);
-      } else {
-        alert(`Failed to test variables: ${response.error}`);
+      // Convert percentages to decimals
+      const decimalAdstockRates = selectedAdstockRates.map(rate => rate / 100);
+
+      // Test each variable with each adstock rate
+      for (const variable of selectedVariables) {
+        for (const adstockRate of decimalAdstockRates) {
+          // Create a descriptive name for variables with adstock
+          const variableName = adstockRate > 0 ?
+            `${variable} (Adstock ${adstockRate * 100}%)` :
+            variable;
+
+          // Test this variable with this adstock rate
+          const promise = apiService.testVariables(
+            selectedModel,
+            [variable],
+            [adstockRate]
+          ).then(response => {
+            if (response.success && response.results && response.results.length > 0) {
+              // Rename the variable to include adstock information
+              const result = response.results[0];
+              result.Variable = variableName;
+              allResults.push(result);
+            }
+            return response;
+          });
+
+          allPromises.push(promise);
+        }
       }
+
+      // Wait for all tests to complete
+      await Promise.all(allPromises);
+
+      // Sort results by absolute T-stat value
+      allResults.sort((a, b) => Math.abs(b['T-stat']) - Math.abs(a['T-stat']));
+
+      setTestResults(allResults);
+      setTestPerformed(true);
     } catch (error) {
       console.error('Error testing variables:', error);
       alert('An error occurred while testing variables');
@@ -130,12 +162,15 @@ const VariableTesting = () => {
     }
   };
 
-  // Handle adstock rate change
-  const handleAdstockRateChange = (variableName, rate) => {
-    setAdstockRates(prev => ({
-      ...prev,
-      [variableName]: rate / 100 // Convert percentage to decimal
-    }));
+  // Handle toggling adstock rate selection
+  const handleAdstockRateToggle = (rate) => {
+    setSelectedAdstockRates(prev => {
+      if (prev.includes(rate)) {
+        return prev.filter(r => r !== rate);
+      } else {
+        return [...prev, rate].sort((a, b) => a - b);
+      }
+    });
   };
 
   // Render variable list with checkboxes
@@ -143,10 +178,10 @@ const VariableTesting = () => {
     return (
       <div>
         <div className="flex items-center mb-2">
-          <input 
-            type="checkbox" 
-            className="form-checkbox h-4 w-4 text-blue-600" 
-            checked={filteredVariables.length > 0 && 
+          <input
+            type="checkbox"
+            className="form-checkbox h-4 w-4 text-blue-600"
+            checked={filteredVariables.length > 0 &&
                     selectedVariables.length === filteredVariables.length}
             onChange={handleSelectAll}
             id="select-all-vars"
@@ -155,7 +190,7 @@ const VariableTesting = () => {
             Select All
           </label>
         </div>
-        
+
         <div className="max-h-96 overflow-y-auto border border-gray-200 rounded">
           {filteredVariables.length === 0 ? (
             <div className="p-3 text-center text-gray-500">No variables found</div>
@@ -163,37 +198,19 @@ const VariableTesting = () => {
             <div className="divide-y divide-gray-200">
               {filteredVariables.map(variable => (
                 <div key={variable.name} className="p-2 hover:bg-gray-100 flex items-center">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     id={`var-${variable.name}`}
-                    className="form-checkbox h-4 w-4 text-blue-600" 
+                    className="form-checkbox h-4 w-4 text-blue-600"
                     checked={selectedVariables.includes(variable.name)}
                     onChange={() => handleCheckboxClick(variable.name)}
                   />
-                  <label 
-                    htmlFor={`var-${variable.name}`} 
+                  <label
+                    htmlFor={`var-${variable.name}`}
                     className="ml-2 text-sm cursor-pointer flex-1 truncate"
                   >
                     {variable.name}
                   </label>
-                  
-                  {showAdstockOptions && selectedVariables.includes(variable.name) && (
-                    <div className="flex items-center ml-2">
-                      <span className="text-xs mr-1">Adstock:</span>
-                      <input 
-                        type="number" 
-                        className="w-16 p-1 border border-gray-300 rounded text-xs"
-                        min="0"
-                        max="100"
-                        value={(adstockRates[variable.name] || 0) * 100}
-                        onChange={(e) => handleAdstockRateChange(
-                          variable.name, 
-                          parseInt(e.target.value, 10)
-                        )}
-                      />
-                      <span className="text-xs ml-1">%</span>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
@@ -210,14 +227,14 @@ const formatCell = (field, value) => {
       const colorClass = value > 0 ? 'text-green-600' : value < 0 ? 'text-red-600' : '';
       return <span className={colorClass}>{value.toFixed(4)}</span>;
     }
-    
+
     // T-stat formatting with enhanced color coding
     if (field === 'T-stat') {
       let colorClass = '';
       const absValue = Math.abs(value);
       const isSignificant = absValue >= 1.96;
       const isPositive = value > 0;
-      
+
       if (isSignificant) {
         // Significant values: bold with color based on sign
         colorClass = isPositive ? 'font-bold text-green-600' : 'font-bold text-red-600';
@@ -225,33 +242,33 @@ const formatCell = (field, value) => {
         // Non-significant values: not bold but still colored based on sign
         colorClass = isPositive ? 'text-green-600' : 'text-red-600';
       }
-      
+
       return <span className={colorClass}>{value.toFixed(4)}</span>;
     }
-    
+
     // VIF formatting
     if (field === 'VIF') {
       let colorClass = '';
-      
+
       if (value > 10) {
         colorClass = 'font-bold text-red-600'; // High multicollinearity
       } else if (value > 5) {
         colorClass = 'text-orange-500'; // Moderate multicollinearity
       }
-      
+
       return <span className={colorClass}>{value.toFixed(2)}</span>;
     }
-    
+
     // R-squared increase formatting
     if (field === 'R-squared Increase') {
       return <span>{(value * 100).toFixed(2)}%</span>;
     }
-    
+
     // Correlation with residuals formatting as percentage with 2 decimal points
     if (field === 'Correlation with Residuals') {
       return <span>{(value * 100).toFixed(2)}%</span>;
     }
-    
+
     // Default formatting
     return value;
   }
@@ -293,53 +310,53 @@ const formatCell = (field, value) => {
           width="100%"
         >
           <ColumnsDirective>
-            <ColumnDirective 
-              field="Variable" 
-              headerText="Variable" 
+            <ColumnDirective
+              field="Variable"
+              headerText="Variable"
               width="200"
               textAlign="Left"
             />
-            <ColumnDirective 
-              field="Coefficient" 
-              headerText="Coefficient" 
+            <ColumnDirective
+              field="Coefficient"
+              headerText="Coefficient"
               width="120"
               format="N4"
               textAlign="Right"
               template={(props) => formatCell('Coefficient', props.Coefficient)}
             />
-            <ColumnDirective 
-              field="T-stat" 
-              headerText="T-statistic" 
+            <ColumnDirective
+              field="T-stat"
+              headerText="T-statistic"
               width="120"
               format="N4"
               textAlign="Right"
               template={(props) => formatCell('T-stat', props['T-stat'])}
             />
-            <ColumnDirective 
-              field="P-value" 
-              headerText="P-value" 
+            <ColumnDirective
+              field="P-value"
+              headerText="P-value"
               width="120"
               format="N4"
               textAlign="Right"
             />
-            <ColumnDirective 
-              field="VIF" 
-              headerText="VIF" 
+            <ColumnDirective
+              field="VIF"
+              headerText="VIF"
               width="100"
               format="N2"
               textAlign="Right"
               template={(props) => formatCell('VIF', props.VIF)}
             />
-            <ColumnDirective 
-              field="Rsquared_Increase" 
-              headerText="R² Increase" 
+            <ColumnDirective
+              field="Rsquared_Increase"
+              headerText="R² Increase"
               width="120"
               textAlign="Right"
               template={(props) => formatCell('R-squared Increase', props.Rsquared_Increase)}
             />
-            <ColumnDirective 
-              field="Correlation_with_Residuals" 
-              headerText="Corr. w/ Residuals" 
+            <ColumnDirective
+              field="Correlation_with_Residuals"
+              headerText="Corr. w/ Residuals"
               width="150"
               format="N4"
               textAlign="Right"
@@ -355,13 +372,13 @@ const formatCell = (field, value) => {
     <div className="m-2 md:m-10 mt-24 p-2 md:p-10 bg-white dark:bg-secondary-dark-bg rounded-3xl">
       <ErrorBoundary>
         <Header category="Modeling" title="Variable Testing" />
-        
+
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
           {/* Left Panel - Variable Selection */}
           <div className="md:col-span-3 bg-gray-50 p-4 rounded-lg">
             <div className="mb-4">
               <h3 className="text-lg font-semibold mb-2">Variables</h3>
-              
+
               <div className="relative mb-4">
                 <input
                   type="text"
@@ -374,10 +391,10 @@ const formatCell = (field, value) => {
                   <FiSearch className="h-5 w-5 text-gray-400" />
                 </div>
               </div>
-              
+
               {renderVariableList()}
             </div>
-            
+
             <div className="mb-4">
               <h3 className="text-lg font-semibold mb-2">Model Selection</h3>
               <div className="mb-3">
@@ -395,29 +412,54 @@ const formatCell = (field, value) => {
                 />
               </div>
             </div>
-            
+
             <div className="mb-4">
-              <div className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  id="show-adstock"
-                  className="form-checkbox h-4 w-4 text-blue-600"
-                  checked={showAdstockOptions}
-                  onChange={() => setShowAdstockOptions(!showAdstockOptions)}
-                />
-                <label htmlFor="show-adstock" className="ml-2 text-sm font-medium">
-                  Show Adstock Options
-                </label>
-              </div>
-            </div>
-            
+  <div className="flex items-center mb-2">
+    <input
+      type="checkbox"
+      id="show-adstock"
+      className="form-checkbox h-4 w-4 text-blue-600"
+      checked={showAdstockOptions}
+      onChange={() => setShowAdstockOptions(!showAdstockOptions)}
+    />
+    <label htmlFor="show-adstock" className="ml-2 text-sm font-medium">
+      Show Adstock Options
+    </label>
+  </div>
+
+  {showAdstockOptions && (
+    <div className="mt-2 p-3 border border-gray-200 rounded-md bg-white">
+      <p className="text-sm font-medium mb-2">Select Adstock Rates to Test:</p>
+      <div className="flex flex-wrap gap-2">
+        {adstockOptions.map(rate => (
+          <div key={rate} className="flex items-center">
+            <input
+              type="checkbox"
+              id={`adstock-${rate}`}
+              className="form-checkbox h-4 w-4 text-blue-600"
+              checked={selectedAdstockRates.includes(rate)}
+              onChange={() => handleAdstockRateToggle(rate)}
+            />
+            <label htmlFor={`adstock-${rate}`} className="ml-1 text-sm">
+              {rate}%
+            </label>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-gray-500 mt-2">
+        Each variable will be tested with all selected adstock rates
+      </p>
+    </div>
+  )}
+</div>
+
             <div className="mt-4">
               <ButtonComponent
                 cssClass="e-success"
-                style={{ 
-                  backgroundColor: currentColor, 
-                  borderColor: currentColor, 
-                  width: '100%' 
+                style={{
+                  backgroundColor: currentColor,
+                  borderColor: currentColor,
+                  width: '100%'
                 }}
                 onClick={handleTestVariables}
                 disabled={selectedVariables.length === 0 || !selectedModel || loading}
@@ -426,15 +468,15 @@ const formatCell = (field, value) => {
               </ButtonComponent>
             </div>
           </div>
-          
+
           {/* Right Panel - Test Results */}
           <div className="md:col-span-9 bg-white p-4 rounded-lg shadow-sm">
             <h3 className="text-lg font-semibold mb-4">Test Results</h3>
-            
+
             {loading ? (
               <div className="flex items-center justify-center h-64">
-                <div 
-                  className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" 
+                <div
+                  className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"
                   style={{ borderColor: currentColor }}
                 ></div>
                 <p className="ml-2">Testing variables...</p>

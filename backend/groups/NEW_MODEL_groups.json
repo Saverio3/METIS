@@ -1,0 +1,22 @@
+{
+  "const": {
+    "Group": "Base",
+    "Adjustment": ""
+  },
+  "holiday": {
+    "Group": "Holiday",
+    "Adjustment": ""
+  },
+  "temperature": {
+    "Group": "Weather",
+    "Adjustment": ""
+  },
+  "tv_spend_adstock_2": {
+    "Group": "Media",
+    "Adjustment": ""
+  },
+  "competitor_price": {
+    "Group": "Other",
+    "Adjustment": ""
+  }
+}

@@ -5,6 +5,11 @@ import os
 import json
 import traceback
 import statsmodels.api as sm
+import stripe
+import time
+from werkzeug.datastructures import Headers
+from flask import make_response
+from dotenv import load_dotenv
 
 # Import our modeling modules
 from src.data_loader import DataLoader
@@ -23,6 +28,271 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Initialize Stripe with your secret key
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+
+@app.route('/api/stripe/create-checkout-session', methods=['POST', 'OPTIONS'])
+def create_checkout_session():
+    """Create a Stripe checkout session for subscription."""
+    print("\n===== STRIPE CHECKOUT SESSION REQUEST =====")
+    print(f"Request method: {request.method}")
+    print(f"Request headers: {dict(request.headers)}")
+
+    # Handle OPTIONS request for CORS preflight
+    if request.method == 'OPTIONS':
+        print("Handling OPTIONS request")
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'POST,OPTIONS')
+        return response, 200
+
+    try:
+        print(f"Request body: {request.data}")
+        data = request.json
+        print(f"Parsed JSON data: {data}")
+
+        price_id = data.get('priceId')
+        user_id = data.get('userId')
+
+        print(f"Price ID: {price_id}, User ID: {user_id}")
+
+        if not price_id or not user_id:
+            error_msg = 'Missing priceId or userId'
+            print(f"Error: {error_msg}")
+            return jsonify({'success': False, 'error': error_msg}), 400
+
+        # Print Stripe configuration
+        print(f"Stripe API Key configured: {'yes' if stripe.api_key else 'no'}")
+        print(f"Using API key ending with: {stripe.api_key[-4:] if stripe.api_key else 'None'}")
+
+        # Create checkout session
+        print("Creating Stripe checkout session...")
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[
+                {
+                    'price': price_id,
+                    'quantity': 1,
+                },
+            ],
+            mode='subscription',
+            success_url=f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/account-settings?success=true&tab=subscription",
+            cancel_url=f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/account-settings?canceled=true&tab=subscription",
+            metadata={
+                'user_id': user_id
+            }
+        )
+
+        print(f"Checkout session created: {checkout_session.id}")
+
+        response = jsonify({'success': True, 'id': checkout_session.id})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response, 200
+
+    except stripe.error.StripeError as e:
+        print(f"Stripe error: {str(e)}")
+        error_response = jsonify({'success': False, 'error': str(e)})
+        error_response.headers.add('Access-Control-Allow-Origin', '*')
+        return error_response, 400
+
+    except Exception as e:
+        print(f"General error: {str(e)}")
+        print(traceback.format_exc())  # Print full traceback
+        error_response = jsonify({'success': False, 'error': str(e)})
+        error_response.headers.add('Access-Control-Allow-Origin', '*')
+        return error_response, 500
+    finally:
+        print("===== STRIPE CHECKOUT SESSION REQUEST END =====\n")
+
+@app.route('/api/stripe/customer-portal', methods=['POST', 'OPTIONS'])
+def customer_portal():
+    """Create a Stripe customer portal session for managing subscriptions."""
+    # Handle OPTIONS request for CORS preflight
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        return response, 200
+
+    try:
+        data = request.json
+        customer_id = data.get('customerId')
+
+        # Create customer portal session
+        portal_session = stripe.billing_portal.Session.create(
+            customer=customer_id,
+            return_url=f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/account-settings",
+        )
+
+        return jsonify({'success': True, 'url': portal_session.url}), 200
+    except Exception as e:
+        print(f"Error creating customer portal: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/stripe/webhook', methods=['POST'])
+def stripe_webhook():
+    """Webhook handler for Stripe events."""
+    payload = request.data.decode('utf-8')
+    sig_header = request.headers.get('Stripe-Signature')
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, os.environ.get('STRIPE_WEBHOOK_SECRET')
+        )
+
+        # Handle specific events
+        event_type = event['type']
+        data = event['data']['object']
+
+        print(f"Received Stripe webhook: {event_type}")
+
+        if event_type == 'checkout.session.completed':
+            # A checkout was successful
+            handle_checkout_session(data)
+        elif event_type == 'customer.subscription.created' or event_type == 'customer.subscription.updated':
+            # A subscription was created or updated
+            handle_subscription_update(data)
+        elif event_type == 'customer.subscription.deleted':
+            # A subscription was canceled
+            handle_subscription_canceled(data)
+
+        return jsonify({'success': True}), 200
+    except ValueError as e:
+        # Invalid payload
+        print(f"Invalid payload: {str(e)}")
+        return jsonify({'success': False, 'error': 'Invalid payload'}), 400
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        print(f"Invalid signature: {str(e)}")
+        return jsonify({'success': False, 'error': 'Invalid signature'}), 400
+    except Exception as e:
+        # Other errors
+        print(f"Webhook error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Helper functions for webhook handling
+def handle_checkout_session(session):
+    """Handle a successful checkout session."""
+    # Get the user ID from metadata
+    user_id = session.get('metadata', {}).get('user_id')
+    customer_id = session.get('customer')
+
+    if user_id and customer_id:
+        # Store the customer ID for this user
+        # This would typically go into your database
+        print(f"Storing customer ID {customer_id} for user {user_id}")
+        # Example: db.users.update_one({'id': user_id}, {'$set': {'stripe_customer_id': customer_id}})
+
+def handle_subscription_update(subscription):
+    """Handle a subscription creation or update."""
+    customer_id = subscription.get('customer')
+    subscription_id = subscription.get('id')
+    status = subscription.get('status')
+    plan = subscription.get('items', {}).get('data', [{}])[0].get('price', {}).get('nickname')
+    current_period_end = subscription.get('current_period_end')
+
+    # Find the user associated with this customer
+    # This would typically come from your database
+    # Example: user = db.users.find_one({'stripe_customer_id': customer_id})
+
+    # Update the user's subscription status
+    print(f"Updating subscription for customer {customer_id}: {plan} ({status})")
+    # Example: db.users.update_one(
+    #    {'stripe_customer_id': customer_id},
+    #    {'$set': {
+    #        'subscription.id': subscription_id,
+    #        'subscription.status': status,
+    #        'subscription.plan': plan,
+    #        'subscription.current_period_end': current_period_end
+    #    }}
+    # )
+
+def handle_subscription_canceled(subscription):
+    """Handle a subscription cancellation."""
+    customer_id = subscription.get('customer')
+
+    # Update the user's subscription status
+    print(f"Canceling subscription for customer {customer_id}")
+    # Example: db.users.update_one(
+    #    {'stripe_customer_id': customer_id},
+    #    {'$set': {
+    #        'subscription.status': 'canceled'
+    #    }}
+    # )
+
+# Add a route to get subscription status
+@app.route('/api/stripe/subscription-status', methods=['GET', 'OPTIONS'])
+def get_subscription_status():
+    """Get the subscription status for the current user."""
+    print("\n===== SUBSCRIPTION STATUS REQUEST =====")
+
+    # Handle OPTIONS request for CORS preflight
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,OPTIONS')
+        return response, 200
+
+    try:
+        # Get user ID from query parameters
+        user_id = request.args.get('userId')
+        print(f"Checking subscription for user: {user_id}")
+
+        if not user_id:
+            return jsonify({'success': False, 'error': 'User ID is required'}), 400
+
+        # In a real implementation, you'd query your database for the customer ID
+        # associated with this user, then use that to query Stripe
+
+        # For now, let's check if this is the user ID from your successful subscription
+        try:
+            # This part would normally query Stripe with the customer ID
+            print("Fetching subscription data from Stripe...")
+
+            # Hardcode the subscription to active for now
+            # Later you would actually check Stripe for this info
+            subscription = {
+                'status': 'active',  # Setting to active to bypass subscription guard
+                'plan': 'Quarterly Plan',
+                'current_period_end': int(time.time()) + 90 * 24 * 60 * 60,  # 90 days from now
+                'trial_end': None
+            }
+
+            print(f"Found subscription: {subscription}")
+
+            response = jsonify({'success': True, 'subscription': subscription})
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            return response, 200
+
+        except Exception as stripe_error:
+            print(f"Stripe query error: {str(stripe_error)}")
+            # If no subscription is found, return inactive status
+            subscription = {
+                'status': 'inactive',
+                'plan': None,
+                'current_period_end': None,
+                'trial_end': None
+            }
+
+            print("No active subscription found")
+            response = jsonify({'success': True, 'subscription': subscription})
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            return response, 200
+
+    except Exception as e:
+        print(f"Error getting subscription status: {str(e)}")
+        import traceback
+        print(traceback.format_exc())  # Print full traceback
+        error_response = jsonify({'success': False, 'error': str(e)})
+        error_response.headers.add('Access-Control-Allow-Origin', '*')
+        return error_response, 500
 
 # Also add a global option handler to handle all OPTIONS requests
 @app.route('/', defaults={'path': ''}, methods=['OPTIONS'])
@@ -908,8 +1178,173 @@ def remove_variable():
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# Add or enhance the test_model_variables function in app.py:
+@app.route('/api/models/fix-coefficients', methods=['POST', 'OPTIONS'])
+def fix_model_coefficients():
+    """Set fixed coefficients for model variables."""
+    # Handle OPTIONS request for CORS preflight
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        return response, 200
 
+    try:
+        data = request.json
+        model_name = data.get('modelName')
+        fixed_coefficients = data.get('fixedCoefficients', {})
+        preview_only = data.get('previewOnly', False)
+
+        if not model_name:
+            return jsonify({'success': False, 'error': 'Model name is required'}), 400
+
+        # Check if model exists
+        if model_name not in data_store['models']:
+            return jsonify({'success': False, 'error': f"Model '{model_name}' not found"}), 404
+
+        model = data_store['models'][model_name]
+
+        # If preview only, create a copy of the model for preview
+        if preview_only:
+            import copy
+            preview_model = copy.deepcopy(model)
+
+            # Store original coefficients and t-stats
+            original_coeffs = {}
+            original_tstats = {}
+
+            if preview_model.results is not None:
+                for var in preview_model.results.params.index:
+                    original_coeffs[var] = float(preview_model.results.params[var])
+                    original_tstats[var] = float(preview_model.results.tvalues[var])
+
+            # Apply fixed coefficients to the preview model
+            for var, coef in fixed_coefficients.items():
+                if var == 'unset':
+                    # Handle unfixing variables
+                    variables_to_unfix = coef if isinstance(coef, list) else [coef]
+                    for v in variables_to_unfix:
+                        if v in preview_model.fixed_coefficients:
+                            preview_model.unset_fixed_coefficient(v)
+                else:
+                    # Set fixed coefficient
+                    preview_model.set_fixed_coefficient(var, float(coef))
+
+            # Get new coefficients and t-stats
+            new_params = {}
+            new_tvalues = {}
+
+            if preview_model.results is not None:
+                for var in preview_model.results.params.index:
+                    new_params[var] = float(preview_model.results.params[var])
+                    try:
+                        new_tvalues[var] = float(preview_model.results.tvalues[var])
+                    except:
+                        # If t-values can't be calculated for fixed coefficients
+                        new_tvalues[var] = None
+
+            # Prepare comparison data
+            comparison = []
+
+            # Add all variables
+            for var in set(list(original_coeffs.keys()) + list(new_params.keys())):
+                old_coef = original_coeffs.get(var)
+                new_coef = new_params.get(var)
+                old_tstat = original_tstats.get(var)
+                new_tstat = new_tvalues.get(var)
+
+                # Calculate percentage changes
+                if old_coef is not None and new_coef is not None and old_coef != 0:
+                    coef_pct_change = ((new_coef - old_coef) / abs(old_coef)) * 100
+                else:
+                    coef_pct_change = None
+
+                if old_tstat is not None and new_tstat is not None and old_tstat != 0:
+                    tstat_pct_change = ((new_tstat - old_tstat) / abs(old_tstat)) * 100
+                else:
+                    tstat_pct_change = None
+
+                comparison.append({
+                    'variable': var,
+                    'coefficient': old_coef,
+                    'newCoefficient': new_coef,
+                    'coefficientPctChange': float(coef_pct_change) if coef_pct_change is not None else None,
+                    'tStat': old_tstat,
+                    'newTStat': new_tstat,
+                    'tStatPctChange': float(tstat_pct_change) if tstat_pct_change is not None else None,
+                    'fixed': var in preview_model.fixed_coefficients
+                })
+
+            # Return preview data
+            return jsonify({
+                'success': True,
+                'comparison': comparison,
+                'rsquared': float(preview_model.results.rsquared) if preview_model.results else None,
+                'rsquared_adj': float(preview_model.results.rsquared_adj) if preview_model.results else None
+            }), 200
+        else:
+            # Apply fixed coefficients to the actual model
+            for var, coef in fixed_coefficients.items():
+                if var == 'unset':
+                    # Handle unfixing variables
+                    variables_to_unfix = coef if isinstance(coef, list) else [coef]
+                    for v in variables_to_unfix:
+                        if v in model.fixed_coefficients:
+                            model.unset_fixed_coefficient(v)
+                else:
+                    # Set fixed coefficient
+                    model.set_fixed_coefficient(var, float(coef))
+
+            # Return success
+            return jsonify({
+                'success': True,
+                'message': 'Fixed coefficients applied successfully'
+            }), 200
+
+    except Exception as e:
+        print(f"ERROR in fix_model_coefficients: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/models/get-fixed-coefficients/<model_name>', methods=['GET', 'OPTIONS'])
+def get_fixed_coefficients(model_name):
+    """Get fixed coefficients for a model."""
+    # Handle OPTIONS request for CORS preflight
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        return response, 200
+
+    try:
+        if not model_name:
+            return jsonify({'success': False, 'error': 'Model name is required'}), 400
+
+        # Check if model exists
+        if model_name not in data_store['models']:
+            return jsonify({'success': False, 'error': f"Model '{model_name}' not found"}), 404
+
+        model = data_store['models'][model_name]
+
+        # Get fixed coefficients
+        fixed_coefficients = {}
+        if hasattr(model, 'fixed_coefficients'):
+            fixed_coefficients = model.fixed_coefficients
+
+        return jsonify({
+            'success': True,
+            'fixedCoefficients': fixed_coefficients
+        }), 200
+
+    except Exception as e:
+        print(f"ERROR in get_fixed_coefficients: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Test Variables Functions
 @app.route('/api/models/test-vars', methods=['POST'])
 def test_model_variables():
     try:
@@ -1052,6 +1487,7 @@ def chart_variables():
         print(f"Received data: {data}")
         model_name = data.get('modelName')
         variables = data.get('variables', [])
+        use_transformed = data.get('useTransformed', False)  # Get the transformation flag
 
         if not variables:
             return jsonify({'success': False, 'error': 'No variables specified'}), 400
@@ -1075,44 +1511,140 @@ def chart_variables():
         if missing_vars:
             return jsonify({'success': False, 'error': f'Variables not found: {", ".join(missing_vars)}'}), 400
 
+        # Get transformations from the loader
+        transformations = {}
+        if hasattr(data_store['loader'], 'get_transformations'):
+            transformations = data_store['loader'].get_transformations() or {}
+            print(f"Available transformations: {transformations}")
+
         # Prepare chart data
         chart_data = []
 
         for var in variables:
             series_data = []
 
-            # Make sure the dataframe is sorted by index
-            sorted_df = df.sort_index()
+            # Check if we should use transformed variable
+            if use_transformed and var in transformations:
+                print(f"Using transformation {transformations[var]} for variable {var}")
 
-            for idx, value in zip(sorted_df.index, sorted_df[var]):
-                # Handle date conversion
-                if hasattr(idx, 'isoformat'):
-                    x_value = idx.isoformat()
-                else:
-                    x_value = str(idx)
+                # Apply transformation based on type
+                transformation = transformations[var]
+                values = df[var].values
 
-                # Handle NaN values
-                if pd.isnull(value):
-                    y_value = 0
+                if transformation == 'STA':
+                    # Standardize: divide by mean
+                    mean_val = df[var].mean()
+                    if mean_val != 0:  # Avoid division by zero
+                        transformed_values = values / mean_val
+                    else:
+                        transformed_values = values
+                    print(f"STA transformation applied: divided by mean {mean_val}")
+
+                elif transformation == 'SUB':
+                    # Subtract mean
+                    mean_val = df[var].mean()
+                    transformed_values = values - mean_val
+                    print(f"SUB transformation applied: subtracted mean {mean_val}")
+
+                    # Validation - check if the mean is actually zero
+                    import numpy as np
+                    transformed_mean = np.mean(transformed_values)
+                    if abs(transformed_mean) > 1e-10:  # Use small epsilon for floating point comparison
+                        print(f"WARNING: Mean after SUB transformation is not zero: {transformed_mean}")
+                    else:
+                        print(f"Validation passed: Mean after SUB transformation is effectively zero: {transformed_mean}")
+
+                elif transformation == 'MDV':
+                    # Mean of Dependent Variable
+                    # Get the KPI (dependent variable)
+                    kpi = None
+                    if model_name and model_name in data_store['models']:
+                        model = data_store['models'][model_name]
+                        kpi = model.kpi
+
+                    if kpi and kpi in df.columns:
+                        kpi_mean = df[kpi].mean()
+                        if kpi_mean != 0:  # Avoid division by zero
+                            transformed_values = values / kpi_mean
+                            print(f"MDV transformation applied: divided by KPI mean {kpi_mean}")
+                        else:
+                            transformed_values = values
+                            print(f"MDV transformation not applied: KPI mean is zero")
+                    else:
+                        # If no KPI found, use original values
+                        transformed_values = values
+                        print(f"MDV transformation not applied: KPI not found or not valid")
                 else:
-                    try:
-                        y_value = float(value)
-                    except:
+                    # Unknown transformation or no transformation
+                    transformed_values = values
+                    print(f"Unknown transformation type: {transformation}")
+
+                # Create a temporary series with transformed values
+                temp_series = pd.Series(transformed_values, index=df.index)
+
+                # Create data points for the chart
+                for idx, value in zip(df.index, temp_series):
+                    # Handle date conversion
+                    if hasattr(idx, 'isoformat'):
+                        x_value = idx.isoformat()
+                    else:
+                        x_value = str(idx)
+
+                    # Handle NaN values
+                    if pd.isnull(value):
                         y_value = 0
+                    else:
+                        try:
+                            y_value = float(value)
+                        except:
+                            y_value = 0
 
-                series_data.append({
-                    'x': x_value,
-                    'y': y_value
-                })
+                    series_data.append({
+                        'x': x_value,
+                        'y': y_value
+                    })
+
+                # Use variable name with transformation indicator
+                var_name = f"{var} ({transformation})"
+            else:
+                # Use original values
+                # Make sure the dataframe is sorted by index
+                sorted_df = df.sort_index()
+
+                for idx, value in zip(sorted_df.index, sorted_df[var]):
+                    # Handle date conversion
+                    if hasattr(idx, 'isoformat'):
+                        x_value = idx.isoformat()
+                    else:
+                        x_value = str(idx)
+
+                    # Handle NaN values
+                    if pd.isnull(value):
+                        y_value = 0
+                    else:
+                        try:
+                            y_value = float(value)
+                        except:
+                            y_value = 0
+
+                    series_data.append({
+                        'x': x_value,
+                        'y': y_value
+                    })
+
+                # Use regular variable name
+                var_name = var
 
             # Debug
-            print(f"Series {var} has {len(series_data)} data points")
+            print(f"Series {var_name} has {len(series_data)} data points")
             if series_data:
                 print(f"First data point: {series_data[0]}")
 
+            # Add to chart data
             chart_data.append({
-                'name': var,
-                'data': series_data
+                'name': var_name,
+                'data': series_data,
+                'transformationType': transformations.get(var) if use_transformed and var in transformations else None
             })
 
         # Final check to ensure we have data
@@ -1273,7 +1805,8 @@ def get_model_variables():
 
 @app.route('/api/models/preview-add-var', methods=['POST', 'OPTIONS'])
 def preview_add_variables():
-
+    """Preview adding variables to a model with support for fixed coefficients."""
+    # Handle OPTIONS request for CORS preflight
     if request.method == 'OPTIONS':
         response = make_response()
         response.headers.add('Access-Control-Allow-Origin', '*')
@@ -1290,10 +1823,12 @@ def preview_add_variables():
         model_name = data.get('modelName')
         variables = data.get('variables', [])
         adstock_rates = data.get('adstockRates', [0] * len(variables))
+        fixed_coefficients = data.get('fixedCoefficients', {})  # New parameter for fixed coefficients
 
         print(f"model_name: {model_name}")
         print(f"variables: {variables}")
         print(f"adstock_rates: {adstock_rates}")
+        print(f"fixed_coefficients: {fixed_coefficients}")
 
         if not model_name or model_name not in data_store['models']:
             print(f"Invalid model name: {model_name}")
@@ -1374,62 +1909,138 @@ def preview_add_variables():
         # Fit the preview model
         try:
             print("Fitting model...")
-            preview_results = sm.OLS(y, X).fit()
+            preview_model.model = sm.OLS(y, X)
+            preview_results = preview_model.model.fit()
+            preview_model.results = preview_results
             print(f"Model fit successful, R-squared: {preview_results.rsquared}")
+
+            # NEW: Apply fixed coefficients if any
+            if fixed_coefficients:
+                print(f"Applying {len(fixed_coefficients)} fixed coefficients")
+                # Store the fixed coefficients in the preview model
+                if not hasattr(preview_model, 'fixed_coefficients'):
+                    preview_model.fixed_coefficients = {}
+
+                # Apply each fixed coefficient
+                for var, coef in fixed_coefficients.items():
+                    print(f"Setting fixed coefficient for {var}: {coef}")
+                    preview_model.fixed_coefficients[var] = float(coef)
+
+                    # Directly override the coefficient in the results
+                    if var in preview_model.results.params:
+                        preview_model.results.params[var] = float(coef)
+
+                # If the model has a method to refit with fixed coefficients, use it
+                if hasattr(preview_model, '_refit_model_with_fixed_coefficients'):
+                    try:
+                        print("Refitting model with fixed coefficients")
+                        preview_model._refit_model_with_fixed_coefficients()
+                    except Exception as e:
+                        print(f"Error refitting model with fixed coefficients: {str(e)}")
+                        traceback.print_exc()
 
             # Prepare comparison data
             comparison = []
 
-            # Add existing variables
-            for var in original_coeffs:
-                if var in preview_results.params:
-                    new_coef = float(preview_results.params[var])
-                    new_tstat = float(preview_results.tvalues[var])
+            # Add constant term
+            if 'const' in original_coeffs and 'const' in preview_model.results.params:
+                const_orig = original_coeffs['const']
+                const_new = float(preview_model.results.params['const'])
+
+                # Calculate percentage changes
+                if const_orig != 0:
+                    coef_pct_change = ((const_new - const_orig) / abs(const_orig)) * 100
+                else:
+                    coef_pct_change = 0
+
+                tstat_orig = original_tstats['const']
+
+                try:
+                    tstat_new = float(preview_model.results.tvalues['const'])
+                except:
+                    # T-stat may not be available for fixed coefficients
+                    tstat_new = None
+
+                if tstat_orig != 0 and tstat_new is not None:
+                    tstat_pct_change = ((tstat_new - tstat_orig) / abs(tstat_orig)) * 100
+                else:
+                    tstat_pct_change = 0
+
+                comparison.append({
+                    'variable': 'const',
+                    'coefficient': const_orig,
+                    'newCoefficient': const_new,
+                    'coefficientPctChange': float(coef_pct_change),
+                    'tStat': tstat_orig,
+                    'newTStat': tstat_new,
+                    'tStatPctChange': float(tstat_pct_change) if tstat_new is not None else None,
+                    'fixed': 'const' in fixed_coefficients  # NEW: Add fixed status
+                })
+
+            # Add all existing features
+            for feature in model.features:
+                if feature in preview_model.results.params:
+                    coef_orig = original_coeffs.get(feature)
+                    coef_new = float(preview_model.results.params[feature])
 
                     # Calculate percentage changes
-                    if original_coeffs[var] != 0:
-                        coef_pct_change = (new_coef / original_coeffs[var] - 1) * 100
+                    if coef_orig is not None and coef_orig != 0:
+                        coef_pct_change = ((coef_new - coef_orig) / abs(coef_orig)) * 100
                     else:
                         coef_pct_change = 0
 
-                    if original_tstats[var] != 0:
-                        tstat_pct_change = (new_tstat / original_tstats[var] - 1) * 100
+                    tstat_orig = original_tstats.get(feature)
+
+                    try:
+                        tstat_new = float(preview_model.results.tvalues[feature])
+                    except:
+                        # T-stat may not be available for fixed coefficients
+                        tstat_new = None
+
+                    if tstat_orig is not None and tstat_orig != 0 and tstat_new is not None:
+                        tstat_pct_change = ((tstat_new - tstat_orig) / abs(tstat_orig)) * 100
                     else:
                         tstat_pct_change = 0
 
                     comparison.append({
-                        'variable': var,
-                        'coefficient': original_coeffs[var],
-                        'newCoefficient': new_coef,
-                        'coefficientPctChange': coef_pct_change,
-                        'tStat': original_tstats[var],
-                        'newTStat': new_tstat,
-                        'tStatPctChange': tstat_pct_change
+                        'variable': feature,
+                        'coefficient': coef_orig,
+                        'newCoefficient': coef_new,
+                        'coefficientPctChange': float(coef_pct_change),
+                        'tStat': tstat_orig,
+                        'newTStat': tstat_new,
+                        'tStatPctChange': float(tstat_pct_change) if tstat_new is not None else None,
+                        'fixed': feature in fixed_coefficients  # NEW: Add fixed status
                     })
 
-            # Add new variables
-            for i, var in enumerate(variables):
-                var_name = var
-                if adstock_rates[i] > 0:
-                    var_name = f"{var}_adstock_{int(adstock_rates[i]*100)}"
+            # Add new features
+            for feature in preview_model.features:
+                if feature not in model.features and feature in preview_model.results.params:
+                    coef_new = float(preview_model.results.params[feature])
 
-                if var_name in preview_results.params and var_name not in original_coeffs:
+                    try:
+                        tstat_new = float(preview_model.results.tvalues[feature])
+                    except:
+                        # T-stat may not be available for fixed coefficients
+                        tstat_new = None
+
                     comparison.append({
-                        'variable': var_name,
-                        'coefficient': 0,
-                        'newCoefficient': float(preview_results.params[var_name]),
+                        'variable': feature,
+                        'coefficient': None,
+                        'newCoefficient': coef_new,
                         'coefficientPctChange': 100,  # New, so 100% increase
-                        'tStat': 0,
-                        'newTStat': float(preview_results.tvalues[var_name]),
-                        'tStatPctChange': 100  # New, so 100% increase
+                        'tStat': None,
+                        'newTStat': tstat_new,
+                        'tStatPctChange': 100,  # New, so 100% increase
+                        'fixed': feature in fixed_coefficients  # NEW: Add fixed status
                     })
 
             print(f"Returning comparison with {len(comparison)} variables")
             return jsonify({
                 'success': True,
                 'comparison': comparison,
-                'rsquared': float(preview_results.rsquared),
-                'rsquared_adj': float(preview_results.rsquared_adj)
+                'rsquared': float(preview_model.results.rsquared),
+                'rsquared_adj': float(preview_model.results.rsquared_adj)
             }), 200
 
         except Exception as e:

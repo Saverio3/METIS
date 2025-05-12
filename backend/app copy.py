@@ -5,6 +5,10 @@ import os
 import json
 import traceback
 import statsmodels.api as sm
+import stripe
+from werkzeug.datastructures import Headers
+from flask import make_response
+from dotenv import load_dotenv
 
 # Import our modeling modules
 from src.data_loader import DataLoader
@@ -23,6 +27,241 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Initialize Stripe with your secret key
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+
+@app.route('/api/stripe/create-checkout-session', methods=['POST', 'OPTIONS'])
+def create_checkout_session():
+    """Create a Stripe checkout session for subscription."""
+    print("\n===== STRIPE CHECKOUT SESSION REQUEST =====")
+    print(f"Request method: {request.method}")
+    print(f"Request headers: {dict(request.headers)}")
+
+    # Handle OPTIONS request for CORS preflight
+    if request.method == 'OPTIONS':
+        print("Handling OPTIONS request")
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'POST,OPTIONS')
+        return response, 200
+
+    try:
+        print(f"Request body: {request.data}")
+        data = request.json
+        print(f"Parsed JSON data: {data}")
+
+        price_id = data.get('priceId')
+        user_id = data.get('userId')
+
+        print(f"Price ID: {price_id}, User ID: {user_id}")
+
+        if not price_id or not user_id:
+            error_msg = 'Missing priceId or userId'
+            print(f"Error: {error_msg}")
+            return jsonify({'success': False, 'error': error_msg}), 400
+
+        # Print Stripe configuration
+        print(f"Stripe API Key configured: {'yes' if stripe.api_key else 'no'}")
+        print(f"Using API key ending with: {stripe.api_key[-4:] if stripe.api_key else 'None'}")
+
+        # Create checkout session
+        print("Creating Stripe checkout session...")
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[
+                {
+                    'price': price_id,
+                    'quantity': 1,
+                },
+            ],
+            mode='subscription',
+            success_url=f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/account-settings?success=true&tab=subscription",
+            cancel_url=f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/account-settings?canceled=true&tab=subscription",
+            metadata={
+                'user_id': user_id
+            }
+        )
+
+        print(f"Checkout session created: {checkout_session.id}")
+
+        response = jsonify({'success': True, 'id': checkout_session.id})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response, 200
+
+    except stripe.error.StripeError as e:
+        print(f"Stripe error: {str(e)}")
+        error_response = jsonify({'success': False, 'error': str(e)})
+        error_response.headers.add('Access-Control-Allow-Origin', '*')
+        return error_response, 400
+
+    except Exception as e:
+        print(f"General error: {str(e)}")
+        print(traceback.format_exc())  # Print full traceback
+        error_response = jsonify({'success': False, 'error': str(e)})
+        error_response.headers.add('Access-Control-Allow-Origin', '*')
+        return error_response, 500
+    finally:
+        print("===== STRIPE CHECKOUT SESSION REQUEST END =====\n")
+
+@app.route('/api/stripe/customer-portal', methods=['POST', 'OPTIONS'])
+def customer_portal():
+    """Create a Stripe customer portal session for managing subscriptions."""
+    # Handle OPTIONS request for CORS preflight
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        return response, 200
+
+    try:
+        data = request.json
+        customer_id = data.get('customerId')
+
+        # Create customer portal session
+        portal_session = stripe.billing_portal.Session.create(
+            customer=customer_id,
+            return_url=f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/account-settings",
+        )
+
+        return jsonify({'success': True, 'url': portal_session.url}), 200
+    except Exception as e:
+        print(f"Error creating customer portal: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/stripe/webhook', methods=['POST'])
+def stripe_webhook():
+    """Webhook handler for Stripe events."""
+    payload = request.data.decode('utf-8')
+    sig_header = request.headers.get('Stripe-Signature')
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, os.environ.get('STRIPE_WEBHOOK_SECRET')
+        )
+
+        # Handle specific events
+        event_type = event['type']
+        data = event['data']['object']
+
+        print(f"Received Stripe webhook: {event_type}")
+
+        if event_type == 'checkout.session.completed':
+            # A checkout was successful
+            handle_checkout_session(data)
+        elif event_type == 'customer.subscription.created' or event_type == 'customer.subscription.updated':
+            # A subscription was created or updated
+            handle_subscription_update(data)
+        elif event_type == 'customer.subscription.deleted':
+            # A subscription was canceled
+            handle_subscription_canceled(data)
+
+        return jsonify({'success': True}), 200
+    except ValueError as e:
+        # Invalid payload
+        print(f"Invalid payload: {str(e)}")
+        return jsonify({'success': False, 'error': 'Invalid payload'}), 400
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        print(f"Invalid signature: {str(e)}")
+        return jsonify({'success': False, 'error': 'Invalid signature'}), 400
+    except Exception as e:
+        # Other errors
+        print(f"Webhook error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Helper functions for webhook handling
+def handle_checkout_session(session):
+    """Handle a successful checkout session."""
+    # Get the user ID from metadata
+    user_id = session.get('metadata', {}).get('user_id')
+    customer_id = session.get('customer')
+
+    if user_id and customer_id:
+        # Store the customer ID for this user
+        # This would typically go into your database
+        print(f"Storing customer ID {customer_id} for user {user_id}")
+        # Example: db.users.update_one({'id': user_id}, {'$set': {'stripe_customer_id': customer_id}})
+
+def handle_subscription_update(subscription):
+    """Handle a subscription creation or update."""
+    customer_id = subscription.get('customer')
+    subscription_id = subscription.get('id')
+    status = subscription.get('status')
+    plan = subscription.get('items', {}).get('data', [{}])[0].get('price', {}).get('nickname')
+    current_period_end = subscription.get('current_period_end')
+
+    # Find the user associated with this customer
+    # This would typically come from your database
+    # Example: user = db.users.find_one({'stripe_customer_id': customer_id})
+
+    # Update the user's subscription status
+    print(f"Updating subscription for customer {customer_id}: {plan} ({status})")
+    # Example: db.users.update_one(
+    #    {'stripe_customer_id': customer_id},
+    #    {'$set': {
+    #        'subscription.id': subscription_id,
+    #        'subscription.status': status,
+    #        'subscription.plan': plan,
+    #        'subscription.current_period_end': current_period_end
+    #    }}
+    # )
+
+def handle_subscription_canceled(subscription):
+    """Handle a subscription cancellation."""
+    customer_id = subscription.get('customer')
+
+    # Update the user's subscription status
+    print(f"Canceling subscription for customer {customer_id}")
+    # Example: db.users.update_one(
+    #    {'stripe_customer_id': customer_id},
+    #    {'$set': {
+    #        'subscription.status': 'canceled'
+    #    }}
+    # )
+
+# Add a route to get subscription status
+@app.route('/api/stripe/subscription-status', methods=['GET', 'OPTIONS'])
+def get_subscription_status():
+    """Get the subscription status for the current user."""
+    # Handle OPTIONS request for CORS preflight
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        return response, 200
+
+    try:
+        # The user ID would typically come from authentication
+        user_id = request.args.get('userId')
+
+        if not user_id:
+            return jsonify({'success': False, 'error': 'User ID is required'}), 400
+
+        # In a real implementation, you would look up the user's customer ID and subscription
+        # in your database, then fetch current details from Stripe
+        # Example:
+        # user = db.users.find_one({'id': user_id})
+        # customer_id = user.get('stripe_customer_id')
+
+        # For this example, we'll return a mock subscription
+        subscription = {
+            'status': 'active',
+            'plan': 'Starter',
+            'current_period_end': int(time.time()) + 30 * 24 * 60 * 60,  # 30 days from now
+            'trial_end': None
+        }
+
+        return jsonify({'success': True, 'subscription': subscription}), 200
+    except Exception as e:
+        print(f"Error getting subscription status: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # Also add a global option handler to handle all OPTIONS requests
 @app.route('/', defaults={'path': ''}, methods=['OPTIONS'])
@@ -852,15 +1091,27 @@ def remove_variable():
             if var in model.features:
                 model.features.remove(var)
 
-        # Prepare data for fitting
-        y = model.model_data[model.kpi]
-
         # If no features left, just fit with constant
-        X = sm.add_constant(pd.DataFrame(index=y.index))  # Just the constant term
+        if not model.features:
+            y = model.model_data[model.kpi]
+            X = sm.add_constant(pd.DataFrame(index=y.index))  # Just the constant term
 
-        # Fit the model
-        model.model = sm.OLS(y, X)
-        model.results = model.model.fit()
+            # Fit the model
+            model.model = sm.OLS(y, X)
+            model.results = model.model.fit()
+        else:
+            # Prepare data for fitting with remaining features
+            y = model.model_data[model.kpi]
+
+            # Create DataFrame with just the remaining features
+            X = model.model_data[model.features].copy()
+
+            # Add constant
+            X = sm.add_constant(X)
+
+            # Fit the model
+            model.model = sm.OLS(y, X)
+            model.results = model.model.fit()
 
         # Prepare response
         response_data = {
@@ -871,12 +1122,19 @@ def remove_variable():
 
         # Add coefficients if available
         if model.results:
-            response_data['coefficients'] = {
-                'const': float(model.results.params['const'])
-            }
-            response_data['t_stats'] = {
-                'const': float(model.results.tvalues['const'])
-            }
+            response_data['coefficients'] = {}
+            response_data['t_stats'] = {}
+
+            # Add constant term
+            if 'const' in model.results.params:
+                response_data['coefficients']['const'] = float(model.results.params['const'])
+                response_data['t_stats']['const'] = float(model.results.tvalues['const'])
+
+            # Add remaining features
+            for feature in model.features:
+                if feature in model.results.params:
+                    response_data['coefficients'][feature] = float(model.results.params[feature])
+                    response_data['t_stats'][feature] = float(model.results.tvalues[feature])
 
         return jsonify({
             'success': True,
@@ -1033,6 +1291,7 @@ def chart_variables():
         print(f"Received data: {data}")
         model_name = data.get('modelName')
         variables = data.get('variables', [])
+        use_transformed = data.get('useTransformed', False)  # Get the transformation flag
 
         if not variables:
             return jsonify({'success': False, 'error': 'No variables specified'}), 400
@@ -1056,44 +1315,140 @@ def chart_variables():
         if missing_vars:
             return jsonify({'success': False, 'error': f'Variables not found: {", ".join(missing_vars)}'}), 400
 
+        # Get transformations from the loader
+        transformations = {}
+        if hasattr(data_store['loader'], 'get_transformations'):
+            transformations = data_store['loader'].get_transformations() or {}
+            print(f"Available transformations: {transformations}")
+
         # Prepare chart data
         chart_data = []
 
         for var in variables:
             series_data = []
 
-            # Make sure the dataframe is sorted by index
-            sorted_df = df.sort_index()
+            # Check if we should use transformed variable
+            if use_transformed and var in transformations:
+                print(f"Using transformation {transformations[var]} for variable {var}")
 
-            for idx, value in zip(sorted_df.index, sorted_df[var]):
-                # Handle date conversion
-                if hasattr(idx, 'isoformat'):
-                    x_value = idx.isoformat()
-                else:
-                    x_value = str(idx)
+                # Apply transformation based on type
+                transformation = transformations[var]
+                values = df[var].values
 
-                # Handle NaN values
-                if pd.isnull(value):
-                    y_value = 0
+                if transformation == 'STA':
+                    # Standardize: divide by mean
+                    mean_val = df[var].mean()
+                    if mean_val != 0:  # Avoid division by zero
+                        transformed_values = values / mean_val
+                    else:
+                        transformed_values = values
+                    print(f"STA transformation applied: divided by mean {mean_val}")
+
+                elif transformation == 'SUB':
+                    # Subtract mean
+                    mean_val = df[var].mean()
+                    transformed_values = values - mean_val
+                    print(f"SUB transformation applied: subtracted mean {mean_val}")
+
+                    # Validation - check if the mean is actually zero
+                    import numpy as np
+                    transformed_mean = np.mean(transformed_values)
+                    if abs(transformed_mean) > 1e-10:  # Use small epsilon for floating point comparison
+                        print(f"WARNING: Mean after SUB transformation is not zero: {transformed_mean}")
+                    else:
+                        print(f"Validation passed: Mean after SUB transformation is effectively zero: {transformed_mean}")
+
+                elif transformation == 'MDV':
+                    # Mean of Dependent Variable
+                    # Get the KPI (dependent variable)
+                    kpi = None
+                    if model_name and model_name in data_store['models']:
+                        model = data_store['models'][model_name]
+                        kpi = model.kpi
+
+                    if kpi and kpi in df.columns:
+                        kpi_mean = df[kpi].mean()
+                        if kpi_mean != 0:  # Avoid division by zero
+                            transformed_values = values / kpi_mean
+                            print(f"MDV transformation applied: divided by KPI mean {kpi_mean}")
+                        else:
+                            transformed_values = values
+                            print(f"MDV transformation not applied: KPI mean is zero")
+                    else:
+                        # If no KPI found, use original values
+                        transformed_values = values
+                        print(f"MDV transformation not applied: KPI not found or not valid")
                 else:
-                    try:
-                        y_value = float(value)
-                    except:
+                    # Unknown transformation or no transformation
+                    transformed_values = values
+                    print(f"Unknown transformation type: {transformation}")
+
+                # Create a temporary series with transformed values
+                temp_series = pd.Series(transformed_values, index=df.index)
+
+                # Create data points for the chart
+                for idx, value in zip(df.index, temp_series):
+                    # Handle date conversion
+                    if hasattr(idx, 'isoformat'):
+                        x_value = idx.isoformat()
+                    else:
+                        x_value = str(idx)
+
+                    # Handle NaN values
+                    if pd.isnull(value):
                         y_value = 0
+                    else:
+                        try:
+                            y_value = float(value)
+                        except:
+                            y_value = 0
 
-                series_data.append({
-                    'x': x_value,
-                    'y': y_value
-                })
+                    series_data.append({
+                        'x': x_value,
+                        'y': y_value
+                    })
+
+                # Use variable name with transformation indicator
+                var_name = f"{var} ({transformation})"
+            else:
+                # Use original values
+                # Make sure the dataframe is sorted by index
+                sorted_df = df.sort_index()
+
+                for idx, value in zip(sorted_df.index, sorted_df[var]):
+                    # Handle date conversion
+                    if hasattr(idx, 'isoformat'):
+                        x_value = idx.isoformat()
+                    else:
+                        x_value = str(idx)
+
+                    # Handle NaN values
+                    if pd.isnull(value):
+                        y_value = 0
+                    else:
+                        try:
+                            y_value = float(value)
+                        except:
+                            y_value = 0
+
+                    series_data.append({
+                        'x': x_value,
+                        'y': y_value
+                    })
+
+                # Use regular variable name
+                var_name = var
 
             # Debug
-            print(f"Series {var} has {len(series_data)} data points")
+            print(f"Series {var_name} has {len(series_data)} data points")
             if series_data:
                 print(f"First data point: {series_data[0]}")
 
+            # Add to chart data
             chart_data.append({
-                'name': var,
-                'data': series_data
+                'name': var_name,
+                'data': series_data,
+                'transformationType': transformations.get(var) if use_transformed and var in transformations else None
             })
 
         # Final check to ensure we have data
@@ -1426,7 +1781,7 @@ def preview_add_variables():
 
 @app.route('/api/models/preview-remove-var', methods=['POST', 'OPTIONS'])
 def preview_remove_variables():
-    # Add OPTIONS method handler for CORS preflight
+    # Handle OPTIONS method
     if request.method == 'OPTIONS':
         return jsonify({}), 200
 
@@ -1464,151 +1819,98 @@ def preview_remove_variables():
             X = sm.add_constant(pd.DataFrame(index=y.index))
             preview_model.model = sm.OLS(y, X)
             preview_results = preview_model.model.fit()
+        else:
+            # Normal case: If still have features, continue with original logic
+            # Prepare data for the new model
+            import statsmodels.api as sm
+            y = preview_model.model_data[preview_model.kpi]
 
-            # Prepare comparison data
-            comparison = []
+            # Create DataFrame with just the remaining features
+            X = preview_model.model_data[preview_model.features].copy()
 
-            # Add constant term comparison
-            if 'const' in original_coeffs and 'const' in preview_results.params:
-                const_orig = original_coeffs['const']
-                const_new = float(preview_results.params['const'])
+            # Add constant
+            X = sm.add_constant(X)
 
-                # Calculate percentage changes
-                if const_orig != 0:
-                    coef_pct_change = ((const_new - const_orig) / abs(const_orig)) * 100
-                else:
-                    coef_pct_change = 0
+            # Fit the preview model
+            preview_model.model = sm.OLS(y, X)
+            preview_results = preview_model.model.fit()
 
-                tstat_orig = original_tstats['const']
-                tstat_new = float(preview_results.tvalues['const'])
+        # Get the new parameters and t-values
+        new_params = {}
+        new_tvalues = {}
+        if preview_results is not None:
+            for var in preview_results.params.index:
+                new_params[var] = float(preview_results.params[var])
+                new_tvalues[var] = float(preview_results.tvalues[var])
 
-                if tstat_orig != 0:
-                    tstat_pct_change = ((tstat_new - tstat_orig) / abs(tstat_orig)) * 100
-                else:
-                    tstat_pct_change = 0
+        # Prepare comparison data
+        comparison = []
 
+        # Add constant term
+        if 'const' in original_coeffs and 'const' in new_params:
+            const_orig = original_coeffs['const']
+            const_new = new_params['const']
+
+            # Calculate percentage changes
+            if const_orig != 0:
+                coef_pct_change = ((const_new - const_orig) / abs(const_orig)) * 100
+            else:
+                coef_pct_change = 0
+
+            tstat_orig = original_tstats['const']
+            tstat_new = new_tvalues['const']
+
+            if tstat_orig != 0:
+                tstat_pct_change = ((tstat_new - tstat_orig) / abs(tstat_orig)) * 100
+            else:
+                tstat_pct_change = 0
+
+            comparison.append({
+                'variable': 'const',
+                'coefficient': const_orig,
+                'newCoefficient': const_new,
+                'coefficientPctChange': float(coef_pct_change),
+                'tStat': tstat_orig,
+                'newTStat': tstat_new,
+                'tStatPctChange': float(tstat_pct_change)
+            })
+
+        # Add each removed variable
+        for var in variables:
+            if var in original_coeffs:
                 comparison.append({
-                    'variable': 'const',
-                    'coefficient': const_orig,
-                    'newCoefficient': const_new,
-                    'coefficientPctChange': float(coef_pct_change),
-                    'tStat': tstat_orig,
-                    'newTStat': tstat_new,
-                    'tStatPctChange': float(tstat_pct_change)
+                    'variable': var,
+                    'coefficient': original_coeffs[var],
+                    'newCoefficient': 0,
+                    'coefficientPctChange': -100,  # Removed, so -100% decrease
+                    'tStat': original_tstats[var],
+                    'newTStat': 0,
+                    'tStatPctChange': -100  # Removed, so -100% decrease
                 })
 
-            # Add each removed variable
-            for var in variables:
-                if var in original_coeffs:
-                    comparison.append({
-                        'variable': var,
-                        'coefficient': original_coeffs[var],
-                        'newCoefficient': 0,
-                        'coefficientPctChange': -100,  # Removed, so -100% decrease
-                        'tStat': original_tstats[var],
-                        'newTStat': 0,
-                        'tStatPctChange': -100  # Removed, so -100% decrease
-                    })
-
-            return jsonify({
-                'success': True,
-                'comparison': comparison,
-                'rsquared': float(preview_results.rsquared),
-                'rsquared_adj': float(preview_results.rsquared_adj)
-            }), 200
-
-        # Normal case: If still have features, continue with original logic
-        # Prepare data for the new model
-        import statsmodels.api as sm
-        y = preview_model.model_data[preview_model.kpi]
-        X = sm.add_constant(preview_model.model_data[preview_model.features])
-
-        # Fit the preview model
-        try:
-            preview_results = sm.OLS(y, X).fit()
-
-            # Prepare comparison data
-            comparison = []
-
-            # Add constant term if it exists in both models
-            if 'const' in original_coeffs and 'const' in preview_results.params:
-                const_orig = original_coeffs['const']
-                const_new = float(preview_results.params['const'])
-
-                # Calculate percentage changes
-                if const_orig != 0:
-                    coef_pct_change = ((const_new - const_orig) / abs(const_orig)) * 100
-                else:
-                    coef_pct_change = 0
-
-                tstat_orig = original_tstats['const']
-                tstat_new = float(preview_results.tvalues['const'])
-
-                if tstat_orig != 0:
-                    tstat_pct_change = ((tstat_new - tstat_orig) / abs(tstat_orig)) * 100
-                else:
-                    tstat_pct_change = 0
-
-                comparison.append({
-                    'variable': 'const',
-                    'coefficient': const_orig,
-                    'newCoefficient': const_new,
-                    'coefficientPctChange': float(coef_pct_change),
-                    'tStat': tstat_orig,
-                    'newTStat': tstat_new,
-                    'tStatPctChange': float(tstat_pct_change)
-                })
-
-            # Add remaining variables
-            for var in preview_model.features:
-                if var in original_coeffs and var in preview_results.params:
-                    new_coef = float(preview_results.params[var])
-                    new_tstat = float(preview_results.tvalues[var])
-
-                    # Calculate percentage changes
-                    if original_coeffs[var] != 0:
-                        coef_pct_change = ((new_coef - original_coeffs[var]) / abs(original_coeffs[var])) * 100
-                    else:
-                        coef_pct_change = 0
-
-                    if original_tstats[var] != 0:
-                        tstat_pct_change = ((new_tstat - original_tstats[var]) / abs(original_tstats[var])) * 100
-                    else:
-                        tstat_pct_change = 0
+        # Add all other variables that aren't being removed
+        for var in original_coeffs:
+            if var not in variables and var != 'const' and var not in [item['variable'] for item in comparison]:
+                if var in new_params:
+                    coef_pct_change = ((new_params[var] - original_coeffs[var]) / abs(original_coeffs[var])) * 100 if original_coeffs[var] != 0 else 0
+                    tstat_pct_change = ((new_tvalues[var] - original_tstats[var]) / abs(original_tstats[var])) * 100 if original_tstats[var] != 0 else 0
 
                     comparison.append({
                         'variable': var,
                         'coefficient': original_coeffs[var],
-                        'newCoefficient': new_coef,
+                        'newCoefficient': float(new_params[var]),
                         'coefficientPctChange': float(coef_pct_change),
                         'tStat': original_tstats[var],
-                        'newTStat': new_tstat,
+                        'newTStat': float(new_tvalues[var]),
                         'tStatPctChange': float(tstat_pct_change)
                     })
 
-            # Add removed variables (showing as removed)
-            for var in variables:
-                if var in original_coeffs:
-                    comparison.append({
-                        'variable': var,
-                        'coefficient': original_coeffs[var],
-                        'newCoefficient': 0,
-                        'coefficientPctChange': -100,  # Removed, so -100% decrease
-                        'tStat': original_tstats[var],
-                        'newTStat': 0,
-                        'tStatPctChange': -100  # Removed, so -100% decrease
-                    })
-
-            return jsonify({
-                'success': True,
-                'comparison': comparison,
-                'rsquared': float(preview_results.rsquared),
-                'rsquared_adj': float(preview_results.rsquared_adj)
-            }), 200
-
-        except Exception as e:
-            print(f"Error fitting preview model: {str(e)}")
-            return jsonify({'success': False, 'error': f'Error fitting model: {str(e)}'}), 500
+        return jsonify({
+            'success': True,
+            'comparison': comparison,
+            'rsquared': float(preview_results.rsquared),
+            'rsquared_adj': float(preview_results.rsquared_adj)
+        }), 200
 
     except Exception as e:
         print(f"ERROR in preview_remove_variables: {str(e)}")

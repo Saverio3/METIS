@@ -324,7 +324,7 @@ const handleRemoveVariables = async () => {
       setPendingChanges(false);
       setModelComparison(null);
 
-      // Refresh model variables
+      // Fetch model variables again to update the UI with the current state
       await fetchModelVariables(selectedModel.name);
 
       // Success message
@@ -392,7 +392,7 @@ const handleApplyChanges = async () => {
   if (previewMode === 'add') {
     await handleApplyAddVariables();
   } else if (previewMode === 'remove') {
-    await handleApplyRemoveVariables(); // This was previously undefined
+    await handleApplyRemoveVariables();
   }
 };
 
@@ -1114,46 +1114,53 @@ const handleCreateNewModel = async () => {
   </div>
 </div>
 
-        {/* Tab panel for variable management */}
-        <TabComponent
-  id="modelTabs"
-  selected={activeTab}
-  selecting={(e) => {
-    try {
-      if (typeof e.selectedIndex === 'number') {
-        setActiveTab(e.selectedIndex);
-      }
-    } catch (error) {
-      console.log("Tab selection handling error:", error);
-      // Silently handle the error
-    }
-  }}
->
-  <TabItemsDirective>
-    <TabItemDirective
-      header={{ text: 'Current Variables' }}
-      content={() => {
-        try {
-          return renderModelVariablesGrid();
-        } catch (error) {
-          console.log("Tab content error:", error);
-          return <div>Loading content...</div>;
-        }
+{/* Custom styled tabs that work with light/dark theme and respect currentColor */}
+<div className="mt-6">
+  <div className="flex border-b dark:border-gray-700">
+    <button
+      className={`py-3 px-6 font-medium text-sm transition-colors duration-200 relative ${
+        activeTab === 0
+          ? 'text-white border-b-2'
+          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+      }`}
+      onClick={() => setActiveTab(0)}
+      style={{
+        backgroundColor: activeTab === 0 ? currentColor : '',
+        borderColor: activeTab === 0 ? currentColor : ''
       }}
-    />
-    <TabItemDirective
-      header={{ text: 'Add Variables' }}
-      content={() => {
-        try {
-          return renderAddVariablesGrid();
-        } catch (error) {
-          console.log("Tab content error:", error);
-          return <div>Loading content...</div>;
-        }
+    >
+      <div className="flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+        Current Variables
+      </div>
+    </button>
+    <button
+      className={`py-3 px-6 font-medium text-sm transition-colors duration-200 ${
+        activeTab === 1
+          ? 'text-white border-b-2'
+          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+      }`}
+      onClick={() => setActiveTab(1)}
+      style={{
+        backgroundColor: activeTab === 1 ? currentColor : '',
+        borderColor: activeTab === 1 ? currentColor : ''
       }}
-    />
-  </TabItemsDirective>
-</TabComponent>
+    >
+      <div className="flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Add Variables
+      </div>
+    </button>
+  </div>
+  <div className="bg-white dark:bg-gray-800 border border-t-0 dark:border-gray-700 rounded-b-lg shadow-sm">
+    {activeTab === 0 && renderModelVariablesGrid()}
+    {activeTab === 1 && renderAddVariablesGrid()}
+  </div>
+</div>
 
         {/* Clone Model Dialog */}
         <DialogComponent

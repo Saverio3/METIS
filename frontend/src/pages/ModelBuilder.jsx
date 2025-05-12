@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   GridComponent,
   ColumnsDirective,
@@ -58,6 +59,15 @@ const ModelBuilder = () => {
   const [variablesToRemove, setVariablesToRemove] = useState([]);
   const [searchVariablesText, setSearchVariablesText] = useState('');
   const [previewMode, setPreviewMode] = useState(null); // 'add' or 'remove'
+
+  // State to keep track of fixed coefficients
+  const [fixedCoefficients, setFixedCoefficients] = useState({});
+  const [showFixCoefficientDialog, setShowFixCoefficientDialog] = useState(false);
+  const [variablesToFix, setVariablesToFix] = useState([]);
+  const [customCoefficients, setCustomCoefficients] = useState({});
+  const [fixCoeffPreview, setFixCoeffPreview] = useState(null);
+  const [variableCoeffTypes, setVariableCoeffTypes] = useState({});
+  const [variableCoeffValues, setVariableCoeffValues] = useState({});
 
   // States for comparison data
   const [modelComparison, setModelComparison] = useState(null);
@@ -150,6 +160,9 @@ const ModelBuilder = () => {
       if (response.success && response.variables) {
         console.log(`Loaded ${response.variables.length} variables`);
         setModelVariables(response.variables);
+
+        // Fetch fixed coefficients
+        fetchFixedCoefficients(modelName);
       } else {
         console.warn('No variables found or error:', response.error);
         setModelVariables([]);
@@ -195,10 +208,26 @@ const ModelBuilder = () => {
 
       const adstockRatesArray = variablesToAdd.map(v => adstockRates[v] || 0);
 
+      // Get fixed coefficient data for preview
+      const fixedCoeffs = {};
+      for (const varName of variablesToAdd) {
+        if (variableCoeffTypes[varName] === 'fixed' && variableCoeffValues[varName]) {
+          // Create the variable name with adstock suffix if needed
+          const adstockRate = adstockRates[varName] || 0;
+          const finalVarName = adstockRate > 0
+            ? `${varName}_adstock_${parseInt(adstockRate * 100)}`
+            : varName;
+
+          fixedCoeffs[finalVarName] = parseFloat(variableCoeffValues[varName]);
+        }
+      }
+
+      // Call the preview API
       const response = await apiService.previewAddVariables(
         selectedModel.name,
         variablesToAdd,
-        adstockRatesArray
+        adstockRatesArray,
+        fixedCoeffs  // Pass the fixed coefficients
       );
 
       if (response.success) {
@@ -268,6 +297,7 @@ const ModelBuilder = () => {
       setLoading(true);
       const adstockRatesArray = variablesToAdd.map(v => adstockRates[v] || 0);
 
+      // Call the API to add variables
       const response = await apiService.addVariables(
         selectedModel.name,
         variablesToAdd,
@@ -275,11 +305,43 @@ const ModelBuilder = () => {
       );
 
       if (response.success) {
+        // If any coefficients should be fixed, handle that separately
+        const fixedCoeffs = {};
+        let hasFixedCoeffs = false;
+
+        for (const varName of variablesToAdd) {
+          if (variableCoeffTypes[varName] === 'fixed' && variableCoeffValues[varName]) {
+            // Create the variable name with adstock suffix if needed
+            const adstockRate = adstockRates[varName] || 0;
+            const finalVarName = adstockRate > 0
+              ? `${varName}_adstock_${parseInt(adstockRate * 100)}`
+              : varName;
+
+            fixedCoeffs[finalVarName] = parseFloat(variableCoeffValues[varName]);
+            hasFixedCoeffs = true;
+          }
+        }
+
+        // If there are any fixed coefficients, apply them
+        if (hasFixedCoeffs) {
+          await apiService.fixCoefficients(
+            selectedModel.name,
+            fixedCoeffs,
+            false // not preview, apply changes
+          );
+        }
+
+        // Reset state
         setVariablesToAdd([]);
         setShowComparisonDialog(false);
         setPendingChanges(false);
         setModelComparison(null);
+        setVariableCoeffTypes({});
+        setVariableCoeffValues({});
+
+        // Refresh model variables
         await fetchModelVariables(selectedModel.name);
+
         alert('Variables added successfully!');
       } else {
         alert(`Failed to add variables: ${response.error || 'Unknown server error'}`);
@@ -454,6 +516,273 @@ const handleCancelChanges = () => {
       alert('Error cloning model: ' + error.message);
     }
   };
+
+  // Add this function to fetch fixed coefficients
+const fetchFixedCoefficients = async (modelName) => {
+  try {
+    const response = await apiService.getFixedCoefficients(modelName);
+    if (response.success) {
+      setFixedCoefficients(response.fixedCoefficients || {});
+    } else {
+      console.warn('Failed to load fixed coefficients:', response.error);
+      setFixedCoefficients({});
+    }
+  } catch (error) {
+    console.error('Error fetching fixed coefficients:', error);
+    setFixedCoefficients({});
+  }
+};
+
+// Add this function to handle showing the fix coefficient dialog
+const handleShowFixCoefficients = () => {
+  // Validate selection first
+  if (!variablesToRemove || variablesToRemove.length === 0) {
+    alert('Please select variables to fix coefficients for');
+    return;
+  }
+
+  // Validate model
+  if (!selectedModel || !modelVariables || modelVariables.length === 0) {
+    alert('No variables in model to fix');
+    return;
+  }
+
+  // Create a clean, separate copy of the selected variables
+  const selectedVars = [...variablesToRemove];
+
+  // Pre-initialize coefficients object
+  const initialCoeffs = {};
+
+  // Safely initialize coefficient values
+  selectedVars.forEach(varName => {
+    const variable = modelVariables.find(v => v.name === varName);
+    initialCoeffs[varName] = variable && variable.coefficient !== undefined
+      ? variable.coefficient
+      : 0;
+  });
+
+  // Set state in this specific order
+  setVariablesToFix(selectedVars);
+  setCustomCoefficients(initialCoeffs);
+  setFixCoeffPreview(null);
+
+  // Use a timeout to ensure all state is updated before showing dialog
+  setTimeout(() => {
+    setShowFixCoefficientDialog(true);
+  }, 100);
+};
+
+// Add this function to handle coefficient input change
+const handleCoeffInputChange = (varName, value) => {
+  try {
+    // Safely convert to number, default to 0 if invalid
+    const numericValue = parseFloat(value) || 0;
+
+    setCustomCoefficients(prev => ({
+      ...prev,
+      [varName]: numericValue
+    }));
+  } catch (error) {
+    console.error('Error updating coefficient value:', error);
+    // If there's an error, keep the previous value but don't crash
+  }
+};
+
+// Add this function to preview fixed coefficients
+const handlePreviewFixedCoefficients = async () => {
+  if (!selectedModel) {
+    alert('Please select a model first');
+    return;
+  }
+
+  if (!variablesToFix || variablesToFix.length === 0) {
+    alert('No variables selected to fix coefficients');
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    // Prepare data for API - safely handle missing or invalid state
+    const fixedCoeffs = {};
+    variablesToFix.forEach(varName => {
+      if (customCoefficients && customCoefficients[varName] !== undefined) {
+        fixedCoeffs[varName] = customCoefficients[varName];
+      }
+    });
+
+    if (Object.keys(fixedCoeffs).length === 0) {
+      alert('No valid coefficient values provided');
+      setLoading(false);
+      return;
+    }
+
+    console.log('Sending fixed coefficients preview request:', {
+      modelName: selectedModel.name,
+      fixedCoefficients: fixedCoeffs
+    });
+
+    // Call API with preview flag
+    const response = await apiService.fixCoefficients(
+      selectedModel.name,
+      fixedCoeffs,
+      true // preview only
+    );
+
+    console.log('Preview response:', response);
+
+    if (response && response.success) {
+      setFixCoeffPreview(response);
+      setPendingChanges(true);
+    } else {
+      const errorMsg = response ? response.error : 'Unknown error';
+      alert('Failed to preview changes: ' + errorMsg);
+    }
+  } catch (error) {
+    console.error('Error previewing fixed coefficients:', error);
+    alert('Error previewing changes: ' + (error.message || 'Unknown error'));
+  } finally {
+    setLoading(false);
+  }
+};
+
+// Add this function to apply fixed coefficients
+const handleApplyFixedCoefficients = async () => {
+  if (!selectedModel) {
+    alert('Please select a model first');
+    return;
+  }
+
+  if (!variablesToFix || variablesToFix.length === 0) {
+    alert('No variables selected to fix coefficients');
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    // Prepare data for API
+    const fixedCoeffs = {};
+
+    // Only add variables with defined values
+    if (customCoefficients) {
+      variablesToFix.forEach(varName => {
+        if (customCoefficients[varName] !== undefined) {
+          fixedCoeffs[varName] = customCoefficients[varName];
+        }
+      });
+    }
+
+    if (Object.keys(fixedCoeffs).length === 0) {
+      alert('No valid coefficient values provided');
+      setLoading(false);
+      return;
+    }
+
+    console.log('Applying fixed coefficients:', fixedCoeffs);
+
+    // Call API to apply changes
+    const response = await apiService.fixCoefficients(
+      selectedModel.name,
+      fixedCoeffs,
+      false // not preview, apply changes
+    );
+
+    if (response && response.success) {
+      // First hide the dialog
+      setShowFixCoefficientDialog(false);
+
+      // Wait a bit to ensure dialog is unmounted
+      setTimeout(() => {
+        // Then reset the form state
+        setVariablesToFix([]);
+        setCustomCoefficients({});
+        setFixCoeffPreview(null);
+
+        // Refresh model variables after a delay
+        setTimeout(() => {
+          fetchModelVariables(selectedModel.name);
+        }, 100);
+
+        alert('Coefficients fixed successfully!');
+      }, 100);
+    } else {
+      alert('Failed to apply fixed coefficients: ' + (response ? response.error : 'Unknown error'));
+    }
+  } catch (error) {
+    console.error('Error applying fixed coefficients:', error);
+    alert('Error applying fixed coefficients: ' + (error.message || 'Unknown error'));
+  } finally {
+    setLoading(false);
+  }
+};
+
+// Add this function to unfix coefficients
+const handleUnfixCoefficients = async () => {
+  if (!selectedModel) {
+    alert('Please select a model first');
+    return;
+  }
+
+  if (!variablesToFix || variablesToFix.length === 0) {
+    alert('No variables selected to unfix coefficients');
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    console.log('Unfixing coefficients for:', variablesToFix);
+
+    // Call API to unfix selected variables
+    const response = await apiService.fixCoefficients(
+      selectedModel.name,
+      { unset: variablesToFix },
+      false // not preview, apply changes
+    );
+
+    if (response && response.success) {
+      // First hide the dialog
+      setShowFixCoefficientDialog(false);
+
+      // Wait a bit to ensure dialog is unmounted
+      setTimeout(() => {
+        // Then reset the form state
+        setVariablesToFix([]);
+        setCustomCoefficients({});
+        setFixCoeffPreview(null);
+
+        // Refresh model variables after a delay
+        setTimeout(() => {
+          fetchModelVariables(selectedModel.name);
+        }, 100);
+
+        alert('Coefficients unfixed successfully!');
+      }, 100);
+    } else {
+      alert('Failed to unfix coefficients: ' + (response ? response.error : 'Unknown error'));
+    }
+  } catch (error) {
+    console.error('Error unfixing coefficients:', error);
+    alert('Error unfixing coefficients: ' + (error.message || 'Unknown error'));
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleCoeffTypeChange = (variableName, value) => {
+  setVariableCoeffTypes(prev => ({
+    ...prev,
+    [variableName]: value
+  }));
+};
+
+const handleCoeffValueChange = (variableName, value) => {
+  setVariableCoeffValues(prev => ({
+    ...prev,
+    [variableName]: value
+  }));
+};
 
   // Handle filter date range
   const handleFilterDateRange = async () => {
@@ -644,6 +973,34 @@ const handleCreateNewModel = async () => {
 
   // Format cell for comparison table
   const formatComparisonCell = (field, value, rowData) => {
+    // Handle null/undefined values first
+    if (value === null || value === undefined) {
+      return '-';
+    }
+
+    // Coefficient formatting
+    if (field === 'coefficient' || field === 'newCoefficient') {
+      const colorClass = value > 0 ? 'text-green-600' : value < 0 ? 'text-red-600' : '';
+      return <span className={colorClass}>{value.toFixed(4)}</span>;
+    }
+
+    // T-stat formatting
+    if (field === 'tStat' || field === 'newTStat') {
+      let colorClass = '';
+      const absValue = Math.abs(value);
+      const isSignificant = absValue >= 1.96;
+      const isPositive = value > 0;
+
+      if (isSignificant) {
+        colorClass = isPositive ? 'font-bold text-green-600' : 'font-bold text-red-600';
+      } else {
+        colorClass = isPositive ? 'text-green-600' : 'text-red-600';
+      }
+
+      return <span className={colorClass}>{value.toFixed(4)}</span>;
+    }
+
+    // Percentage change formatting
     if (field === 'pctChange') {
       // Color-code based on magnitude of change
       let colorClass = '';
@@ -679,6 +1036,32 @@ const handleCreateNewModel = async () => {
     }
 
     return value;
+  };
+
+  useEffect(() => {
+    // This cleanup function will run when the component unmounts
+    return () => {
+      // Reset all dialog-related state to prevent updates on unmounted components
+      setShowFixCoefficientDialog(false);
+      setVariablesToFix([]);
+      setCustomCoefficients({});
+      setFixCoeffPreview(null);
+      setShowComparisonDialog(false);
+      setModelComparison(null);
+    };
+  }, []);
+
+  // Update the close handler for the dialog
+  const handleCloseFixCoefficientDialog = () => {
+    // First hide the dialog
+    setShowFixCoefficientDialog(false);
+
+    // Wait for the dialog to be removed from DOM before clearing state
+    setTimeout(() => {
+      setVariablesToFix([]);
+      setCustomCoefficients({});
+      setFixCoeffPreview(null);
+    }, 50);
   };
 
   // Render model variables grid
@@ -762,6 +1145,9 @@ const handleCreateNewModel = async () => {
                   Transformation
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Coeff Type
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Group
                 </th>
               </tr>
@@ -789,12 +1175,17 @@ const handleCreateNewModel = async () => {
                       {formatModelVariableCell('tStat', variable.tStat)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-  <div className="text-sm text-gray-900">
-    {variable.transformation && variable.transformation !== 'None'
-      ? variable.transformation
-      : '-'}
-  </div>
-</td>
+                      <div className="text-sm text-gray-900">
+                        {variable.transformation && variable.transformation !== 'None'
+                          ? variable.transformation
+                          : '-'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className={`text-sm ${fixedCoefficients[variable.name] !== undefined ? 'font-semibold text-blue-600' : 'text-gray-500'}`}>
+                        {fixedCoefficients[variable.name] !== undefined ? 'Fixed' : 'Floating'}
+                      </div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{variable.group || 'Other'}</div>
                     </td>
@@ -804,22 +1195,39 @@ const handleCreateNewModel = async () => {
           </table>
         </div>
 
-        <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end">
-  <ButtonComponent
-    cssClass="e-primary"
-    style={{
-      backgroundColor: currentColor,
-      borderColor: currentColor,
-    }}
-    onClick={handleShowRemovePreview}  // Use the preview function
-    disabled={variablesToRemove.length === 0 || loading}
-  >
-    <div className="flex items-center gap-1">
-      <FiMinus className="mr-1" />
-      Remove Selected Variables
-    </div>
-  </ButtonComponent>
-</div>
+        <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-2">
+          <ButtonComponent
+            cssClass="e-primary"
+            style={{
+              backgroundColor: currentColor,
+              borderColor: currentColor,
+            }}
+            onClick={handleShowFixCoefficients}
+            disabled={variablesToRemove.length === 0 || loading}
+          >
+            <div className="flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              Fix Coefficients
+            </div>
+          </ButtonComponent>
+
+          <ButtonComponent
+            cssClass="e-primary"
+            style={{
+              backgroundColor: currentColor,
+              borderColor: currentColor,
+            }}
+            onClick={handleShowRemovePreview}
+            disabled={variablesToRemove.length === 0 || loading}
+          >
+            <div className="flex items-center gap-1">
+              <FiMinus className="mr-1" />
+              Remove Selected Variables
+            </div>
+          </ButtonComponent>
+        </div>
       </div>
     );
   };
@@ -878,46 +1286,80 @@ const handleCreateNewModel = async () => {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Adstock
                 </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Coeff Type
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Coeff Value
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {availableVariables.map((variable) => (
-                <tr key={variable.name} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <input
-                      type="checkbox"
-                      className="form-checkbox h-5 w-5 text-blue-600"
-                      checked={variablesToAdd.includes(variable.name)}
-                      onChange={() => handleVariableToAddSelect(variable.name)}
-                    />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{variable.name}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                      {variable.type || 'NUMERIC'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
+            {availableVariables.map((variable) => {
+              const isSelected = variablesToAdd.includes(variable.name);
+              // Safely access coeffType with fallback to 'floating'
+              const coeffType = (variableCoeffTypes && variableCoeffTypes[variable.name]) || 'floating';
+
+
+                return (
+                  <tr key={variable.name} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        className="form-checkbox h-5 w-5 text-blue-600"
+                        checked={isSelected}
+                        onChange={() => handleVariableToAddSelect(variable.name)}
+                      />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{variable.name}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                        {variable.type || 'NUMERIC'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <input
+                          type="number"
+                          className="w-16 p-1 border border-gray-300 rounded text-sm"
+                          min="0"
+                          max="100"
+                          value={(adstockRates[variable.name] || 0) * 100}
+                          onChange={(e) => handleAdstockRateChange(
+                            variable.name,
+                            parseInt(e.target.value, 10) || 0
+                          )}
+                          disabled={!isSelected}
+                        />
+                        <span className="ml-1 text-sm">%</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <select
+                        className="w-full p-1 border border-gray-300 rounded text-sm"
+                        value={coeffType}
+                        onChange={(e) => handleCoeffTypeChange(variable.name, e.target.value)}
+                        disabled={!isSelected}
+                      >
+                        <option value="floating">Floating</option>
+                        <option value="fixed">Fixed</option>
+                      </select>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <input
                         type="number"
-                        className="w-16 p-1 border border-gray-300 rounded text-sm"
-                        min="0"
-                        max="100"
-                        value={(adstockRates[variable.name] || 0) * 100}
-                        onChange={(e) => handleAdstockRateChange(
-                          variable.name,
-                          parseInt(e.target.value, 10) || 0
-                        )}
-                        disabled={!variablesToAdd.includes(variable.name)}
+                        className="w-24 p-1 border border-gray-300 rounded text-sm"
+                        value={variableCoeffValues[variable.name] || ''}
+                        onChange={(e) => handleCoeffValueChange(variable.name, e.target.value)}
+                        disabled={!isSelected || coeffType !== 'fixed'}
+                        step="0.00001"
                       />
-                      <span className="ml-1 text-sm">%</span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -1205,6 +1647,214 @@ const handleCreateNewModel = async () => {
           </div>
         </DialogComponent>
 
+{/* Fix Coefficient Dialog - using Portal for better DOM management */}
+{showFixCoefficientDialog && createPortal(
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg w-4/5 max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Fix Coefficients</h2>
+        <button
+          type="button"
+          className="text-gray-500 hover:text-gray-700"
+          onClick={() => {
+            setShowFixCoefficientDialog(false);
+          }}
+        >
+          <FiXCircle size={24} />
+        </button>
+      </div>
+
+      <div className="p-4 flex-1 overflow-auto">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold mb-2">Set Fixed Coefficients</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Enter custom coefficient values for the selected variables. These coefficients will be fixed during model fitting.
+          </p>
+
+          <div className="grid grid-cols-1 gap-4 mb-6">
+            {Array.isArray(variablesToFix) && variablesToFix.map((varName) => {
+              // Safe access to model variables
+              const variable = modelVariables && modelVariables.find ?
+                modelVariables.find(v => v.name === varName) : null;
+              const isCurrentlyFixed = fixedCoefficients && fixedCoefficients[varName] !== undefined;
+
+              return (
+                <div key={varName} className="p-4 border rounded-lg bg-gray-50">
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="font-medium">{varName}</div>
+                    <div className={`px-2 py-1 text-xs rounded-full ${isCurrentlyFixed ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+                      {isCurrentlyFixed ? 'Currently Fixed' : 'Currently Floating'}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center">
+                    <div className="mr-3 w-32">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Current Value</label>
+                      <div className="p-2 bg-gray-100 rounded border text-sm">
+                        {variable && variable.coefficient !== undefined ?
+                          variable.coefficient.toFixed(4) : 'N/A'}
+                      </div>
+                    </div>
+
+                    <div className="flex-grow">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">New Fixed Value</label>
+                      <input
+                        type="number"
+                        className="p-2 border rounded w-full"
+                        value={customCoefficients && customCoefficients[varName] !== undefined ?
+                          customCoefficients[varName] : ''}
+                        onChange={(e) => {
+                          const numValue = parseFloat(e.target.value) || 0;
+                          setCustomCoefficients(prev => ({
+                            ...prev,
+                            [varName]: numValue
+                          }));
+                        }}
+                        step="0.00001"
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-center space-x-4 mb-4">
+            <button
+              type="button"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              onClick={handlePreviewFixedCoefficients}
+            >
+              Preview Changes
+            </button>
+
+            <button
+              type="button"
+              className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+              onClick={handleUnfixCoefficients}
+            >
+              Unfix Selected Coefficients
+            </button>
+          </div>
+        </div>
+
+        {/* Preview Results */}
+        {fixCoeffPreview && (
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold mb-4">Preview Changes</h3>
+
+            <div className="max-h-96 overflow-y-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Variable
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Current Coefficient
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      New Coefficient
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      % Change
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Current T-stat
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      New T-stat
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {fixCoeffPreview && fixCoeffPreview.comparison &&
+                    Array.isArray(fixCoeffPreview.comparison) &&
+                    fixCoeffPreview.comparison.map((row, idx) => (
+                    <tr key={`preview-row-${idx}-${row.variable || 'unknown'}`} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{row.variable || '-'}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        {row.coefficient !== null && row.coefficient !== undefined
+                          ? formatComparisonCell('coefficient', row.coefficient, row)
+                          : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        {row.newCoefficient !== null && row.newCoefficient !== undefined
+                          ? formatComparisonCell('newCoefficient', row.newCoefficient, row)
+                          : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        {row.coefficientPctChange !== null && row.coefficientPctChange !== undefined
+                          ? formatComparisonCell('pctChange', row.coefficientPctChange, row)
+                          : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        {row.tStat !== null && row.tStat !== undefined
+                          ? formatComparisonCell('tStat', row.tStat, row)
+                          : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        {row.newTStat !== null && row.newTStat !== undefined
+                          ? formatComparisonCell('newTStat', row.newTStat, row)
+                          : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <div className={`text-sm ${row.fixed ? 'font-semibold text-blue-600' : 'text-gray-500'}`}>
+                          {row.fixed ? 'Fixed' : 'Floating'}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-4 p-4 bg-gray-50 rounded">
+              <div className="flex justify-between">
+                <div>
+                  <p className="text-sm font-medium">R-squared: {fixCoeffPreview.rsquared?.toFixed(4) || 'N/A'}</p>
+                  <p className="text-sm font-medium">Adjusted R-squared: {fixCoeffPreview.rsquared_adj?.toFixed(4) || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">
+                    <strong>Note:</strong> Fixed coefficients don't have standard errors or t-statistics.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="p-4 border-t border-gray-200 flex justify-end space-x-2">
+        <button
+          type="button"
+          className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+          onClick={() => {
+            setShowFixCoefficientDialog(false);
+          }}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+          onClick={handleApplyFixedCoefficients}
+          disabled={loading || !fixCoeffPreview}
+        >
+          {loading ? "Processing..." : "Apply Fixed Coefficients"}
+        </button>
+      </div>
+    </div>
+  </div>,
+  document.body
+)}
+
         {/* Date Filter Dialog */}
         <DialogComponent
           width="500px"
@@ -1307,7 +1957,7 @@ const handleCreateNewModel = async () => {
 </DialogComponent>
 
         {/* Model Comparison Dialog - using simple HTML buttons instead of ButtonComponent */}
-{showComparisonDialog && (
+        {showComparisonDialog && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div className="bg-white rounded-lg w-4/5 h-4/5 overflow-hidden flex flex-col">
       <div className="p-4 border-b border-gray-200 flex justify-between items-center">
@@ -1324,7 +1974,11 @@ const handleCreateNewModel = async () => {
         {/* Debug info */}
         <div className="bg-gray-100 p-2 text-xs mb-4">
           <p>Selected Model: {selectedModel ? selectedModel.name : 'None'}</p>
-          <p>Removing {variablesToRemove.length} variables: {variablesToRemove.join(', ')}</p>
+          {previewMode === 'add' ? (
+            <p>Adding {variablesToAdd.length} variables</p>
+          ) : (
+            <p>Removing {variablesToRemove.length} variables: {variablesToRemove.join(', ')}</p>
+          )}
           <p>Pending Changes: {pendingChanges ? 'Yes' : 'No'}</p>
         </div>
 
@@ -1333,82 +1987,111 @@ const handleCreateNewModel = async () => {
         </h3>
 
         {/* Comparison table */}
-        {modelComparison && (
-          <div className="max-h-96 overflow-y-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Variable
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Current Coefficient
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    New Coefficient
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    % Change
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Current T-stat
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    New T-stat
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    % Change
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {modelComparison.map((row) => (
-                  <tr key={row.variable} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{row.variable}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      {formatComparisonCell('coefficient', row.coefficient, row)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      {formatComparisonCell('newCoefficient', row.newCoefficient, row)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      {formatComparisonCell('pctChange', row.coefficientPctChange, row)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      {formatComparisonCell('tStat', row.tStat, row)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      {formatComparisonCell('newTStat', row.newTStat, row)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      {formatComparisonCell('pctChange', row.tStatPctChange, row)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+{modelComparison && (
+  <div className="max-h-96 overflow-y-auto">
+    <table className="min-w-full divide-y divide-gray-200">
+      <thead className="bg-gray-50">
+        <tr>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Variable
+          </th>
+          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Current Coefficient
+          </th>
+          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            New Coefficient
+          </th>
+          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            % Change
+          </th>
+          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Current T-stat
+          </th>
+          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            New T-stat
+          </th>
+          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            % Change
+          </th>
+          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Coeff Type
+          </th>
+        </tr>
+      </thead>
+      <tbody className="bg-white divide-y divide-gray-200">
+        {modelComparison.map((row) => {
+          // Determine if variable will be fixed - safely handle potential undefined values
+          let willBeFixed = false;
+          if (previewMode === 'add' && variableCoeffTypes) {
+            // Check if it's a new variable with fixed coefficient
+            const baseVarName = row.variable && row.variable.includes('_adstock_')
+              ? row.variable.split('_adstock_')[0]
+              : row.variable;
+            willBeFixed = variableCoeffTypes[baseVarName] === 'fixed';
+          } else {
+            // For remove, use existing fixed status
+            willBeFixed = fixedCoefficients && row.variable
+              ? fixedCoefficients[row.variable] !== undefined
+              : row.fixed === true;
+          }
+
+          return (
+            <tr key={row.variable || `row-${Math.random()}`} className="hover:bg-gray-50">
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm font-medium text-gray-900">{row.variable || '-'}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-right">
+                {formatComparisonCell('coefficient', row.coefficient, row)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-right">
+                {formatComparisonCell('newCoefficient', row.newCoefficient, row)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-right">
+                {row.coefficientPctChange !== null && row.coefficientPctChange !== undefined
+                  ? formatComparisonCell('pctChange', row.coefficientPctChange, row)
+                  : '-'}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-right">
+                {formatComparisonCell('tStat', row.tStat, row)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-right">
+                {formatComparisonCell('newTStat', row.newTStat, row)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-right">
+                {row.tStatPctChange !== null && row.tStatPctChange !== undefined
+                  ? formatComparisonCell('pctChange', row.tStatPctChange, row)
+                  : '-'}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-center">
+                <div className={`text-sm ${willBeFixed ? 'font-semibold text-blue-600' : 'text-gray-500'}`}>
+                  {willBeFixed ? 'Fixed' : 'Floating'}
+                </div>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+)}
       </div>
 
       <div className="p-4 border-t border-gray-200 flex justify-end space-x-2">
-  <button
-    className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
-    onClick={handleCancelChanges}
-  >
-    Cancel
-  </button>
-  <button
-    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
-    onClick={handleApplyChanges}
-    disabled={loading}
-  >
-    {loading ? "Processing..." :
-     previewMode === 'add' ? "Add Variables" : "Remove Variables"}
-  </button>
-</div>
+        <button
+          className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+          onClick={handleCancelChanges}
+        >
+          Cancel
+        </button>
+        <button
+          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+          onClick={handleApplyChanges}
+          disabled={loading}
+        >
+          {loading ? "Processing..." :
+           previewMode === 'add' ? "Add Variables" : "Remove Variables"}
+        </button>
+      </div>
     </div>
   </div>
 )}

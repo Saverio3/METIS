@@ -728,7 +728,12 @@ const Charts = () => {
           majorGridLines: { width: 0 },
           intervalType: 'Months',
           edgeLabelPlacement: 'Shift',
-          labelStyle: { size: '14px' }
+          labelStyle: { size: '14px' },
+          skeleton: 'MMM',
+          intervalType: 'Months',
+          interval: 1,
+          minimum: new Date(new Date(Math.min(...seriesData[0].dataSource.map(p => new Date(p.x)))).getFullYear(), new Date(Math.min(...seriesData[0].dataSource.map(p => new Date(p.x)))).getMonth() - 1, 1),
+          maximum: new Date(new Date(Math.max(...seriesData[0].dataSource.map(p => new Date(p.x)))).getFullYear(), new Date(Math.max(...seriesData[0].dataSource.map(p => new Date(p.x)))).getMonth() + 1, 0)
         }}
         primaryYAxis={{
           minimum: 0,
@@ -856,7 +861,12 @@ const renderStackedChart = () => {
           majorGridLines: { width: 0 },
           intervalType: 'Months',
           edgeLabelPlacement: 'Shift',
-          labelStyle: { size: '14px' }
+          labelStyle: { size: '14px' },
+          skeleton: 'MMM',
+          intervalType: 'Months',
+          interval: 1,
+          minimum: new Date(new Date(Math.min(...Object.keys(cumulativeValues).map(x => new Date(x)))).getFullYear(), new Date(Math.min(...Object.keys(cumulativeValues).map(x => new Date(x)))).getMonth() -1, 1),
+          maximum: new Date(new Date(Math.max(...Object.keys(cumulativeValues).map(x => new Date(x)))).getFullYear(), new Date(Math.max(...Object.keys(cumulativeValues).map(x => new Date(x)))).getMonth() + 1, 0)
         }}
         primaryYAxis={{
           minimum: 0,

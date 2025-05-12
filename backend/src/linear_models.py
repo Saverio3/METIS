@@ -33,6 +33,7 @@ class LinearModel:
         self.start_date = None
         self.end_date = None
         self.loader = loader  # Reference to the data loader for transformations
+        self.fixed_coefficients = {}  # Store fixed coefficients
 
     def set_data(self, data):
         """
@@ -388,6 +389,180 @@ class LinearModel:
             print(f"Error removing feature: {str(e)}")
 
         return self
+
+    # Fix a coefficient
+    def set_fixed_coefficient(self, variable_name, value):
+        """
+        Set a fixed coefficient for a variable.
+
+        Parameters:
+        -----------
+        variable_name : str
+            Name of the variable to fix
+        value : float
+            Fixed coefficient value
+        """
+        if variable_name not in self.features and variable_name != 'const':
+            raise ValueError(f"Variable '{variable_name}' not in model features")
+
+        # Store the fixed coefficient
+        self.fixed_coefficients[variable_name] = float(value)
+
+        # Re-fit the model with fixed coefficient
+        self._refit_model_with_fixed_coefficients()
+
+        return self
+
+    # Unfix a coefficient
+    def unset_fixed_coefficient(self, variable_name):
+        """
+        Unset a fixed coefficient for a variable, making it floating again.
+
+        Parameters:
+        -----------
+        variable_name : str
+            Name of the variable to unfix
+        """
+        if variable_name in self.fixed_coefficients:
+            del self.fixed_coefficients[variable_name]
+
+            # Re-fit the model without the fixed coefficient
+            self._refit_model_with_fixed_coefficients()
+
+        return self
+
+    # Refit the model with fixed coefficients
+    def _refit_model_with_fixed_coefficients(self):
+        """
+        Refit the model while respecting fixed coefficients.
+        """
+        if not self.features or not self.kpi or not self.model_data is not None:
+            return
+
+        try:
+            import statsmodels.api as sm
+            import pandas as pd
+            import numpy as np
+
+            # Prepare the data
+            y = self.model_data[self.kpi]
+
+            # If there are no fixed coefficients, use the standard fitting
+            if not self.fixed_coefficients:
+                # Add each feature
+                X = pd.DataFrame(index=y.index)
+                for feat in self.features:
+                    if feat in self.transformed_data:
+                        X[feat] = self.transformed_data[feat]
+                    else:
+                        X[feat] = self.model_data[feat]
+
+                # Add constant
+                X = sm.add_constant(X)
+
+                # Fit model
+                self.model = sm.OLS(y, X)
+                self.results = self.model.fit()
+                return
+
+            # Handle case with fixed coefficients
+            # First, adjust y by subtracting the fixed components
+            adjusted_y = y.copy()
+            remaining_features = []
+
+            # Process fixed coefficients
+            for var, coef in self.fixed_coefficients.items():
+                if var == 'const':
+                    # Subtract the fixed constant
+                    adjusted_y = adjusted_y - coef
+                elif var in self.features:
+                    # Get variable data
+                    if var in self.transformed_data:
+                        var_data = self.transformed_data[var]
+                    else:
+                        var_data = self.model_data[var]
+
+                    # Subtract the fixed component
+                    adjusted_y = adjusted_y - coef * var_data
+                else:
+                    # Skip variables not in the model
+                    continue
+
+            # Identify remaining features (not fixed)
+            remaining_features = [f for f in self.features if f not in self.fixed_coefficients]
+
+            # If there are no remaining features and const is fixed, we're done
+            if not remaining_features and 'const' in self.fixed_coefficients:
+                # Create a simple OLS result with just the fixed coefficients
+                X = pd.DataFrame(index=y.index)
+                X['const'] = 1.0
+                for feat in self.features:
+                    if feat in self.transformed_data:
+                        X[feat] = self.transformed_data[feat]
+                    else:
+                        X[feat] = self.model_data[feat]
+
+                self.model = sm.OLS(y, X)
+                result = self.model.fit()
+
+                # Overwrite the parameters with fixed values
+                params = result.params.copy()
+                for var, coef in self.fixed_coefficients.items():
+                    params[var] = coef
+
+                # Store the modified results
+                self.results = result
+                self.results.params = params
+                return
+
+            # Prepare data for remaining features
+            X = pd.DataFrame(index=y.index)
+            for feat in remaining_features:
+                if feat in self.transformed_data:
+                    X[feat] = self.transformed_data[feat]
+                else:
+                    X[feat] = self.model_data[feat]
+
+            # Add constant if not fixed
+            if 'const' not in self.fixed_coefficients:
+                X = sm.add_constant(X)
+
+            # Fit model with remaining features
+            remaining_model = sm.OLS(adjusted_y, X)
+            remaining_results = remaining_model.fit()
+
+            # Now reconstruct the full model results
+            X_full = pd.DataFrame(index=y.index)
+            X_full['const'] = 1.0
+            for feat in self.features:
+                if feat in self.transformed_data:
+                    X_full[feat] = self.transformed_data[feat]
+                else:
+                    X_full[feat] = self.model_data[feat]
+
+            self.model = sm.OLS(y, X_full)
+            self.results = self.model.fit()
+
+            # Override the coefficients with fixed values
+            params = self.results.params.copy()
+            for var, coef in self.fixed_coefficients.items():
+                params[var] = coef
+
+            # For remaining features, use the fitted values
+            if 'const' not in self.fixed_coefficients and 'const' in remaining_results.params:
+                params['const'] = remaining_results.params['const']
+
+            for feat in remaining_features:
+                if feat in remaining_results.params:
+                    params[feat] = remaining_results.params[feat]
+
+            # Update the model parameters
+            self.results.params = params
+
+        except Exception as e:
+            print(f"Error refitting model with fixed coefficients: {str(e)}")
+            import traceback
+            traceback.print_exc()
 
     def get_summary(self):
         """
